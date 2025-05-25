@@ -1,0 +1,416 @@
+openapi: "3.0.2"  
+info:
+ title: "API progetto sviluppo web"    
+ description: "API REST per la gestione di richieste di soccorso, missioni e operatori."
+ version: "1.0"
+
+tags:
+  - name: autenticazione
+    description: Operazioni di login/logout
+  - name: richieste
+    description: Gestione richieste di soccorso
+  - name: operatori
+    description: Gestione operatori 
+  - name: missioni
+    description: Gestione delle missioni
+
+servers:
+  - url: "http://localhost:8080/api"
+    description: "Server di sviluppo locale"    
+    
+components:
+  schemas:
+  
+    Utente:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        ruolo:
+          type: string
+          
+    RichiestaSoccorso:
+      type: object
+      properties:
+        id:
+          type: integer
+        descrizione:
+          type: string
+        stato:
+          type: string
+        livelloSuccesso:
+          type: integer
+        operatoreId:
+          type: integer
+          
+    Missione:
+      type: object
+      properties:
+        id:
+          type: integer
+        descrizione:
+          type: string
+        stato:
+          type: string
+        operatoreId:
+          type: integer
+          
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT 
+      
+paths:
+  /login:
+    post:
+      tags:
+        - autenticazione
+      summary: Effettua il login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login effettuato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '401':
+          description: Credenziali non valide
+  
+  /inserisciRichieste:
+    post:
+      tags:
+        - richieste
+      summary: Inserisce richieste di soccorso
+      requestBody:
+         required: true
+         content:
+           application/json:
+             schema:
+               type: object
+               properties:
+                 descrizione:
+                   type: string
+                 stato:
+                   type: string
+                 livelloSuccesso:
+                   type: integer
+                 operatoreId:
+                   type: integer
+      responses:
+         '201':
+           description: Richiesta inserita con successo
+           content:
+             application/json:
+               schema:
+                 $ref: '#/components/schemas/RichiestaSoccorso'
+         '401':
+           description: Richiesta non valida  
+           
+  /richieste/{id}/convalida:
+    put:
+      tags:
+        - richieste
+      summary: Convalida una richiesta di soccorso
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID della richiesta da convalidare
+      responses:
+        '200':
+          description: Richiesta convalidata con successo
+        '400':
+          description: Richiesta già convalidata o dati non validi
+        '404':
+          description: Richiesta non trovata
+      
+  /listaRichieste:
+    get:
+      tags:
+        - richieste
+      summary: Ottieni la lista delle richieste di soccorso (attive, in corso, chiuse, ignorate)
+      parameters:
+        - name: stato
+          in: query
+          schema:
+            type: string
+            enum: [attiva, in_corso, chiusa, ignorata]
+          description: Filtra per stato della richiesta
+          required: false
+        - name: livelloSuccessoMax
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 5
+          description: Livello di successo al massimo 5      
+      responses:
+        '200':
+          description: Lista delle richieste
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RichiestaSoccorso'   
+  
+ 
+        
+  /listaOperatori:
+    get:
+      tags:
+        - operatori
+      summary: Ottieni la lista degli operatori liberi
+      parameters:
+        - name: stato
+          in: query
+          schema:
+            type: string
+            enum: [libero, occupato]
+            default: libero
+          description: Filtra per stato dell' operatore
+          required: false
+      responses:
+        '200':
+          description: Lista degli operatori
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Utente'        
+  
+  /creazioneMissioni:
+    post:
+      tags:
+        - missioni
+      summary: crea una nuova missione
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                descrizione:
+                  type: string
+                stato:
+                  type: string
+                operatoreId:
+                  type: integer
+      responses:
+        '201':
+          description: Missione creata con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Missione'
+        '401':
+          description: Errore nella creazione della missione
+     
+  /missioni/{id}/chiusura:
+      put:
+        tags:
+          - missioni
+        summary: Chiusura missione in corso
+        parameters:
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: integer
+            description: ID della missione da chiudere
+        responses:
+          '200':
+            description: Missione chiusa con successo
+          '400':
+            description: Missione già chiusa
+          '404':
+            description: Missione non trovata
+      
+  /missioni/{id}/annullamento:
+    delete:
+        tags:
+          - missioni
+        summary: Annullamento missione
+        operationId: annullamentoMissione
+        parameters:
+          - name: id
+            in: path
+            required: true
+            schema:
+              type: integer
+            description: ID della missione da annullare
+        responses:
+          '200':
+            description: Missione annullata con successo
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Missioni'
+          '400':
+            description: Missione già annullata
+          '404':
+            description: Missione non trovata
+  
+             
+  /dettagli/{id}/missione:
+    get:
+      tags:
+      - missioni
+    summary: Ottieni i dettagli della missione
+    operationId: getdettaglimissione
+      parameters:
+        - name: id
+            in: path
+            required: true
+            schema:
+              type: integer
+            description: ID della missione da visualizzare
+        responses:
+          '200':
+           description: Dettagli della missione ottenuti con successo
+           content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Missione'
+          '404':
+            description: Missione non trovata   
+  
+  /dettagli/{id}/richiesta:
+    get:
+      tags:
+      - richieste
+    summary: Ottieni i dettagli della richiesta
+    operationId: getdettaglirichiesta
+      parameters:
+        - name: id
+            in: path
+            required: true
+            schema:
+              type: integer
+            description: ID della richiesta da visualizzare
+        responses:
+          '200':
+           description: Dettagli della missione ottenuti con successo
+           content:
+            application/jason:
+              schema:
+                $ref: '#/components/schemas/RichiestaSoccorso'
+          '404':
+            description: Richiesta non trovata       
+            
+            
+  /dettagli/{id}/operatore:
+    get:
+      tags:
+      - operatori
+    summary: Ottieni i dettagli dell' operatore
+    operationId: getdettaglioperatore
+      parametres:
+        - name: id
+            in: path
+            required: true
+            schema:
+              type: integer
+            description: ID dell' operatore
+        responses:
+          '200':
+           description: Dettagli dell'operatore
+           content:
+            application/jason:
+              schema:
+                $ref: '#/components/schemas/Utente'
+          '404':
+            description: Operatore non trovato      
+                      
+      
+  /operatori/{id}/missioni:
+    get:
+      tags:
+        - operatori
+      summary: Lista delle missioni in cui un operatore è stato coinvolto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID dell'operatore
+      responses:
+        '200':
+          description: Lista delle missioni coinvolte
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Missioni'
+        '404':
+          description: Operatore non trovato
+
+    
+          
+                
+    
+      
+      
+      
+      
+      
+
+      
+      
+       
+      
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
