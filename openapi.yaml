@@ -93,8 +93,8 @@ components:
         livelloSuccesso:
           type: integer
           minimum: 1
-          maximum: 5
-          example: 4
+          maximum: 10
+          example: 7
         dataCreazione:
           type: string
           format: date-time
