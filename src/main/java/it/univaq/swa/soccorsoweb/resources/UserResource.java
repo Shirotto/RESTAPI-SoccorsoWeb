@@ -13,14 +13,6 @@ import java.util.List;
 public class UserResource {
 
     private final UserService userService = new UserService();
- 
-    
-    //questo era per vedere se funzionava  poi lo togliamo tranquillamente
-    @GET
-    @Path("/ping")
-    public Response ping() {
-        return Response.ok("pong from user resource").build();
-    }
 
     @POST
     public Response registerUser(User user) {
