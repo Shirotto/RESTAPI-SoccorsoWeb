@@ -1,10 +1,62 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Start Page</title>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-    </body>
-</html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="css/template.css" />
+
+</head>
+<body>
+  <form class="login-container" id="authForm" autocomplete="off">
+    <h2 id="formTitle">Accedi</h2>
+    <div id="loginFields">
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Inserisci la tua email" required>
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Password" required>
+      </div>
+      <button class="login-btn" type="submit">Login</button>
+      <div class="signup-link">
+        Non hai un account?
+        <a id="showSignup">Sign up</a>
+      </div>
+    </div>
+    <div id="signupFields" class="hidden">
+      <div class="input-group">
+        <label for="nome">Nome</label>
+        <input type="text" id="nome" name="nome" placeholder="Nome" required>
+      </div>
+      <div class="input-group">
+        <label for="cognome">Cognome</label>
+        <input type="text" id="cognome" name="cognome" placeholder="Cognome" required>
+      </div>
+      <div class="input-group">
+        <label for="telefono">Numero di telefono</label>
+        <input type="tel" id="telefono" name="telefono" placeholder="Telefono" required>
+      </div>
+      <div class="input-group">
+        <label for="indirizzo">Indirizzo</label>
+        <input type="text" id="indirizzo" name="indirizzo" placeholder="Indirizzo" required>
+      </div>
+      <div class="input-group">
+        <label for="signupEmail">Email</label>
+        <input type="email" id="signupEmail" name="signupEmail" placeholder="Inserisci la tua email" required>
+      </div>
+      <div class="input-group">
+        <label for="signupPassword">Password</label>
+        <input type="password" id="signupPassword" name="signupPassword" placeholder="Password" required>
+      </div>
+      <button class="signup-btn" type="submit">Sign up</button>
+      <div class="login-link">
+        Hai già un account?
+        <a id="showLogin">Login</a>
+      </div>
+    </div>
+  </form>
+    <script src="javascript/logica.js"></script>
+</body>
+</html> 

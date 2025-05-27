@@ -1,0 +1,95 @@
+ body {
+      background: #f6f8fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+    }
+    .login-container {
+      background: #fff;
+      padding: 2.5rem 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 340px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .login-container h2 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: #222;
+      text-align: center;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    label {
+      font-size: 0.98rem;
+      color: #444;
+    }
+    input[type="email"], input[type="password"], input[type="text"], input[type="tel"] {
+      padding: 0.7rem 0.9rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 1rem;
+      background: #f9fafb;
+      transition: border 0.2s;
+    }
+    input:focus {
+      border: 1.5px solid #2563eb;
+      outline: none;
+      background: #fff;
+    }
+    .login-btn, .signup-btn {
+      margin: 1.2rem auto 0 auto;
+      display: block;
+      width: 80%;
+      padding: 1rem 0;
+      background: linear-gradient(90deg, #2563eb 0%, #4f8cff 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.18rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 12px rgba(37,99,235,0.10);
+      transition: transform 0.13s cubic-bezier(.4,2,.6,1), box-shadow 0.18s, background 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .login-btn:hover, .signup-btn:hover {
+      background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%);
+      box-shadow: 0 4px 24px rgba(37,99,235,0.18);
+      transform: translateY(-2px) scale(1.04);
+    }
+    .login-btn:active, .signup-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 1px 6px rgba(37,99,235,0.10);
+    }
+    .signup-link, .login-link {
+      text-align: center;
+      margin-top: 0.5rem;
+      font-size: 0.98rem;
+      color: #555;
+    }
+    .signup-link a, .login-link a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 0.2rem;
+      transition: color 0.2s;
+      cursor: pointer;
+    }
+    .signup-link a:hover, .login-link a:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+    .hidden {
+      display: none;
+    }
