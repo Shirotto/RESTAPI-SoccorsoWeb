@@ -10,4 +10,8 @@ import jakarta.ws.rs.core.Application;
 @ApplicationPath("resources")
 public class JakartaRestConfiguration extends Application {
     
+    
+    
+    
+    // credo che questa si puo elimina perche usiamo gia retapplication
 }

@@ -1,7 +1,6 @@
-C:\Users\anton\Documents\NetBeansProjects\soccorso-web-services\src\main\java\it\univaq\swa\soccorsoweb\config\RestApplication.java
-C:\Users\anton\Documents\NetBeansProjects\soccorso-web-services\src\main\java\it\univaq\swa\soccorsoweb\JakartaRestConfiguration.java
-C:\Users\anton\Documents\NetBeansProjects\soccorso-web-services\src\main\java\it\univaq\swa\soccorsoweb\model\Missione.java
-C:\Users\anton\Documents\NetBeansProjects\soccorso-web-services\src\main\java\it\univaq\swa\soccorsoweb\model\RichiestaSoccorso.java
-C:\Users\anton\Documents\NetBeansProjects\soccorso-web-services\src\main\java\it\univaq\swa\soccorsoweb\model\Utente.java
-C:\Users\anton\Documents\NetBeansProjects\soccorso-web-services\src\main\java\it\univaq\swa\soccorsoweb\resources\JakartaEE11Resource.java
-C:\Users\anton\Documents\NetBeansProjects\soccorso-web-services\src\main\java\it\univaq\swa\soccorsoweb\resources\TestResource.java
+C:\Users\mario\Desktop\SviluppoWeb\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\config\JerseyConfig.java
+C:\Users\mario\Desktop\SviluppoWeb\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\JakartaRestConfiguration.java
+C:\Users\mario\Desktop\SviluppoWeb\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\model\User.java
+C:\Users\mario\Desktop\SviluppoWeb\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\resources\UserResource.java
+C:\Users\mario\Desktop\SviluppoWeb\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\services\UserService.java
+C:\Users\mario\Desktop\SviluppoWeb\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\utils\JPAUtil.java

@@ -1,8 +1,6 @@
-it\univaq\swa\soccorsoweb\model\RichiestaSoccorso.class
-it\univaq\swa\soccorsoweb\resources\TestResource.class
-it\univaq\swa\soccorsoweb\model\Utente.class
-it\univaq\swa\soccorsoweb\resources\JakartaEE11Resource.class
-it\univaq\swa\soccorsoweb\config\RestApplication.class
-it\univaq\swa\soccorsoweb\model\StatoRichiesta.class
-it\univaq\swa\soccorsoweb\model\Missione.class
+it\univaq\swa\soccorsoweb\utils\JPAUtil.class
+it\univaq\swa\soccorsoweb\resources\UserResource.class
+it\univaq\swa\soccorsoweb\config\JerseyConfig.class
+it\univaq\swa\soccorsoweb\model\User.class
 it\univaq\swa\soccorsoweb\JakartaRestConfiguration.class
+it\univaq\swa\soccorsoweb\services\UserService.class
