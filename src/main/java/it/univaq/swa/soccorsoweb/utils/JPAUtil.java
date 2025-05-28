@@ -14,7 +14,7 @@ public class JPAUtil {
 
     static {
         try {
-            emf = Persistence.createEntityManagerFactory("my_persistence_unit");
+            emf = Persistence.createEntityManagerFactory("soccorsoPU");
         } catch (Exception e) {
             System.err.println("Errore durante l'inizializzazione di EntityManagerFactory: " + e.getMessage());
             throw new ExceptionInInitializerError(e);

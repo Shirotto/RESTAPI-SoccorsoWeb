@@ -88,8 +88,58 @@
                 Logout
             </button>
         </div>
-
     </div>
+
+    <!-- MODALE PER INSERIMENTO RICHIESTA -->
+    <div id="modalRichiesta" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🆘 Nuova Richiesta di Soccorso</h2>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            
+            <form id="formRichiesta">
+                <div class="form-group">
+                    <label for="richiedente">Nome del Richiedente:</label>
+                    <input type="text" id="richiedente" name="richiedente" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="descrizione">Descrizione dell'Emergenza: *</label>
+                    <textarea id="descrizione" name="descrizione" rows="4" required 
+                              placeholder="Descrivere dettagliatamente l'emergenza..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="indirizzo">Indirizzo dell'Emergenza: *</label>
+                    <input type="text" id="indirizzo" name="indirizzo" required 
+                           placeholder="Via, Numero Civico, Città">
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono">Telefono di Contatto:</label>
+                    <input type="tel" id="telefono" name="telefono" 
+                           placeholder="es. 3331234567" pattern="[0-9]{10}">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email di Contatto:</label>
+                    <input type="email" id="email" name="email" 
+                           placeholder="esempio@email.com">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="cancellaRichiesta">
+                        Annulla
+                    </button>
+                    <button type="submit" class="btn-primary" id="confermaRichiesta">
+                        🆘 Invia Richiesta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="javascript/logica-home.js"></script>
     

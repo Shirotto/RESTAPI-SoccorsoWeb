@@ -1,10 +1,9 @@
 package it.univaq.swa.soccorsoweb.services;
 
 import it.univaq.swa.soccorsoweb.model.User;
+import it.univaq.swa.soccorsoweb.utils.JPAUtil;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.NoResultException;
-import jakarta.persistence.Persistence;
 import jakarta.persistence.TypedQuery;
 
 import java.security.MessageDigest;
@@ -13,13 +12,11 @@ import java.util.List;
 
 public class UserService {
     
-    private EntityManagerFactory emf = Persistence.createEntityManagerFactory("soccorsoPU");
-    
     /**
      * Salva un nuovo utente nel database
      */
     public void saveUser(User user) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = JPAUtil.getEntityManager();
         try {
             em.getTransaction().begin();           
             // Hash della password prima di salvare
@@ -40,7 +37,7 @@ public class UserService {
      * Trova un utente per ID
      */
     public User findUserById(Long id) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = JPAUtil.getEntityManager();
         try {
             return em.find(User.class, id);
         } finally {
@@ -52,7 +49,7 @@ public class UserService {
      * Trova tutti gli utenti
      */
     public List<User> findAllUsers() {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<User> query = em.createQuery("SELECT u FROM User u", User.class);
             return query.getResultList();
@@ -65,7 +62,7 @@ public class UserService {
      * Trova un utente per email
      */
     public User findUserByEmail(String email) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<User> query = em.createQuery(
                 "SELECT u FROM User u WHERE u.email = :email", User.class);
