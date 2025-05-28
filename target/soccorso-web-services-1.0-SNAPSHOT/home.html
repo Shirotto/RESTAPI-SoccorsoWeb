@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Soccorso - Sistema di Emergenza</title>
+     <link rel="stylesheet" href="css/home.css" />
+</head>
+<body>
+    <div class="dashboard">
+        <h1>🚨 Dashboard Sistema di Soccorso</h1>
+        
+        <div class="sections">
+            <!-- Sezione Richieste di Soccorso -->
+            <div class="section">
+                <h2>📋 Gestione Richieste di Soccorso</h2>
+                <div class="button-grid">
+                    <button class="btn" id="btn-insert-request">
+                        <span class="icon">🆘</span>
+                        Inserimento Richiesta di Soccorso
+                    </button>
+                    <button class="btn" id="btn-validate-request">
+                        <span class="icon">✅</span>
+                        Convalida Richiesta di Soccorso
+                    </button>
+                    <button class="btn" id="btn-list-requests">
+                        <span class="icon">📊</span>
+                        Lista Richieste (Filtrate)
+                    </button>
+                    <button class="btn" id="btn-list-unsuccessful">
+                        <span class="icon">⚠️</span>
+                        Richieste Non Totalmente Positive
+                    </button>
+                    <button class="btn" id="btn-cancel-request">
+                        <span class="icon">❌</span>
+                        Annullamento Richiesta (Admin)
+                    </button>
+                    <button class="btn" id="btn-request-details">
+                        <span class="icon">🔍</span>
+                        Dettagli Richiesta di Soccorso
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sezione Operatori -->
+            <div class="section">
+                <h2>👥 Gestione Operatori</h2>
+                <div class="button-grid">
+                    <button class="btn" id="btn-list-free-operators">
+                        <span class="icon">🟢</span>
+                        Lista Operatori Liberi
+                    </button>
+                    <button class="btn" id="btn-operator-details">
+                        <span class="icon">👤</span>
+                        Dettagli Operatore
+                    </button>
+                    <button class="btn" id="btn-operator-missions">
+                        <span class="icon">📝</span>
+                        Missioni dell'Operatore
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sezione Missioni -->
+            <div class="section">
+                <h2>🎯 Gestione Missioni</h2>
+                <div class="button-grid">
+                    <button class="btn" id="btn-create-mission">
+                        <span class="icon">➕</span>
+                        Creazione Missione
+                    </button>
+                    <button class="btn" id="btn-close-mission">
+                        <span class="icon">🏁</span>
+                        Chiusura Missione in Corso
+                    </button>
+                    <button class="btn" id="btn-mission-details">
+                        <span class="icon">📋</span>
+                        Dettagli Missione
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="javascript/logica-home.js"></script>
+    
+</body>
+</html>
