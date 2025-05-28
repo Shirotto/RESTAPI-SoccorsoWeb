@@ -1,4 +1,3 @@
-
 package it.univaq.swa.soccorsoweb.model;
 
 import jakarta.persistence.*;
@@ -11,25 +10,23 @@ public class User {
    @GeneratedValue(strategy = GenerationType.IDENTITY)
    private Long id;
    
-    @Column(name = "nome")
+    @Column(name = "nome", nullable = false)
     private String nome;
     
-    @Column(name = "cognome")
+    @Column(name = "cognome", nullable = false)
     private String cognome;
     
-    @Column(name = "telefono")
-    private int telefono;
+    @Column(name = "telefono", nullable = false)
+    private int telefono; 
     
     @Column(name = "indirizzo")
     private String indirizzo;
     
-    @Column(name = "email", unique = true)
+    @Column(name = "email", unique = true, nullable = false)
     private String email;
     
-    @Column(name = "password")
+    @Column(name = "password", nullable = false)
     private String password;
-   
-   
     
     public User() {}
    
@@ -53,6 +50,4 @@ public class User {
     
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-    
-    
 }

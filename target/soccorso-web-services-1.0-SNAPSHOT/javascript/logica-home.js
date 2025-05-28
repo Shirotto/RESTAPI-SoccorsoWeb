@@ -58,4 +58,29 @@
             // Implementa missioni operatore
             console.log('Missioni operatore');
         });
+        
+  $('#logoutBtn').on('click', function(e) {
+    e.preventDefault();
+    logout();
+  });
 
+// Funzione per il logout
+function logout() {
+  // Rimuovi i dati dal sessionStorage
+  sessionStorage.removeItem('authToken');
+  sessionStorage.removeItem('userInfo');
+  
+  // Chiama anche l'endpoint di logout del server
+  $.ajax({
+    url: 'http://localhost:8080/soccorso-web-services/api/auth/logout',
+    type: 'POST',
+    success: function() {
+      // Reindirizza alla pagina di login
+      window.location.href = 'index.html';
+    },
+    error: function() {
+      // Anche se c'è un errore, reindirizza comunque
+      window.location.href = 'index.html';
+    }
+  });
+}

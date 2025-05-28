@@ -1,4 +1,8 @@
+it\univaq\swa\soccorsoweb\resources\AuthResource.class
+it\univaq\swa\soccorsoweb\security\JwtUtil.class
 it\univaq\swa\soccorsoweb\utils\JPAUtil.class
+it\univaq\swa\soccorsoweb\dto\LoginRequest.class
+it\univaq\swa\soccorsoweb\dto\LoginResponse.class
 it\univaq\swa\soccorsoweb\resources\UserResource.class
 it\univaq\swa\soccorsoweb\config\JerseyConfig.class
 it\univaq\swa\soccorsoweb\model\User.class
