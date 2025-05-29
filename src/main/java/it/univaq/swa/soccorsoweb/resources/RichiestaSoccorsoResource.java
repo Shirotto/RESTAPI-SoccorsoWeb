@@ -9,8 +9,8 @@ import it.univaq.swa.soccorsoweb.security.JwtUtil;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-
-import java.util.List;
+import java.time.LocalDateTime; 
+import java.util.*;
 
 @Path("/richieste")
 @Produces(MediaType.APPLICATION_JSON)
@@ -88,7 +88,13 @@ public class RichiestaSoccorsoResource {
      * Ottieni tutte le richieste
      */
     @GET
-    public Response getAllRichieste(@HeaderParam("Authorization") String authHeader) {
+    public Response getRichiestePaginate(
+            @QueryParam("page") @DefaultValue("1") int page,
+            @QueryParam("size") @DefaultValue("25") int size,
+            @QueryParam("stato") String stato,
+            @QueryParam("periodo") String periodo,
+            @HeaderParam("Authorization") String authHeader) {
+
         try {
             // Validazione del token JWT
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -104,8 +110,65 @@ public class RichiestaSoccorsoResource {
                     .build();
             }
 
-            List<Richiesta_soccorso> richieste = richiestaService.findAllRichieste();
-            return Response.ok(richieste).build();
+            // Calcola date per filtro periodo
+            LocalDateTime startDate = null;
+            LocalDateTime endDate = LocalDateTime.now();
+
+            if (periodo != null) {
+                switch (periodo) {
+                    case "oggi":
+                        startDate = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0);
+                        break;
+                    case "settimana":
+                        startDate = LocalDateTime.now().minusWeeks(1);
+                        break;
+                    case "mese":
+                        startDate = LocalDateTime.now().minusMonths(1);
+                        break;
+                }
+            }
+
+            List<Richiesta_soccorso> richieste;
+
+            // Applica filtri
+            if (stato != null && !stato.isEmpty()) {
+                try {
+                    StatoRichiesta statoEnum = StatoRichiesta.valueOf(stato);
+                    richieste = richiestaService.findRichiesteByStato(statoEnum);
+                } catch (IllegalArgumentException e) {
+                    return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"error\":\"Stato non valido\"}")
+                        .build();
+                }
+            } else if (startDate != null) {
+                richieste = richiestaService.findRichiesteByPeriod(startDate, endDate);
+            } else {
+                richieste = richiestaService.findAllRichieste();
+            }
+
+            // Simulazione paginazione lato server (idealmente faresti questo nel database)
+            int totalElements = richieste.size();
+            int totalPages = (int) Math.ceil((double) totalElements / size);
+            int start = (page - 1) * size;
+            int end = Math.min(start + size, totalElements);
+
+            if (start >= totalElements) {
+                richieste = new ArrayList<>();
+            } else {
+                richieste = richieste.subList(start, end);
+            }
+
+            // Crea risposta con metadati di paginazione
+            Map<String, Object> response = new HashMap<>();
+            response.put("content", richieste);
+            response.put("totalElements", totalElements);
+            response.put("totalPages", totalPages);
+            response.put("number", page - 1);
+            response.put("size", size);
+            response.put("first", page == 1);
+            response.put("last", page == totalPages);
+
+            return Response.ok(response).build();
 
         } catch (Exception e) {
             e.printStackTrace();

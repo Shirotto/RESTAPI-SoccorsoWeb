@@ -140,6 +140,99 @@
         </div>
     </div>
 
+    <!-- MODALE PER LISTA RICHIESTE -->
+    <div id="modalListaRichieste" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📊 Lista Richieste di Soccorso</h2>
+                <span class="close" id="closeModalLista">&times;</span>
+            </div>
+
+            <!-- Filtri -->
+            <div class="filters-section">
+                <div class="filter-group">
+                    <label for="filtroStato">Stato:</label>
+                    <select id="filtroStato">
+                        <option value="">Tutti gli stati</option>
+                        <option value="NUOVA">Nuove</option>
+                        <option value="IN_ELABORAZIONE">In Elaborazione</option>
+                        <option value="ASSEGNATA">Assegnate</option>
+                        <option value="IN_CORSO">In Corso</option>
+                        <option value="COMPLETATA">Completate</option>
+                        <option value="ANNULLATA">Annullate</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="filtroData">Periodo:</label>
+                    <select id="filtroData">
+                        <option value="">Tutte</option>
+                        <option value="oggi">Oggi</option>
+                        <option value="settimana">Ultima settimana</option>
+                        <option value="mese">Ultimo mese</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <button id="applicaFiltri" class="btn-filter">🔍 Cerca</button>
+                    <button id="resetFiltri" class="btn-filter btn-secondary">🔄 Reset</button>
+                </div>
+            </div>
+
+            <!-- Loading e messaggi -->
+            <div id="loadingRichieste" class="loading-message" style="display: none;">
+                <p>🔄 Caricamento richieste...</p>
+            </div>
+
+            <div id="noRichieste" class="no-data-message" style="display: none;">
+                <p>📭 Nessuna richiesta trovata con i filtri applicati</p>
+            </div>
+
+            <!-- Tabella richieste -->
+            <div id="tabellaRichieste" class="table-container">
+                <table class="richieste-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Richiedente</th>
+                            <th>Descrizione</th>
+                            <th>Indirizzo</th>
+                            <th>Stato</th>
+                            <th>Data Creazione</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyTabellaRichieste">
+                        <!-- Le righe verranno inserite via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginazione -->
+            <div id="paginazione" class="pagination-container">
+                <div class="pagination-info">
+                    <span id="infoPaginazione">Showing 0 of 0 results</span>
+                </div>
+                <div class="pagination-controls">
+                    <button id="btnPrimaPagina" class="btn-page">⏮️</button>
+                    <button id="btnPaginaPrecedente" class="btn-page">⬅️</button>
+                    <span id="numeroPagina">Pagina 1 di 1</span>
+                    <button id="btnPaginaSuccessiva" class="btn-page">➡️</button>
+                    <button id="btnUltimaPagina" class="btn-page">⏭️</button>
+                </div>
+                <div class="page-size-selector">
+                    <label for="pageSize">Elementi per pagina:</label>
+                    <select id="pageSize">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="javascript/logica-home.js"></script>
     

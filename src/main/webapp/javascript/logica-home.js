@@ -1,40 +1,9 @@
-$(document).ready(function() {
-    // Verifica se l'utente è autenticato
-    checkAuthentication();
+let currentPage = 1;
+let pageSize = 25;
+let totalPages = 1;
+let totalItems = 0;
+let currentFilters = {};
 
-    // Event handlers
-    $('#logoutBtn').on('click', function(e) {
-        e.preventDefault();
-        logout();
-    });
-
-    // Apri modale per inserimento richiesta
-    $('#btn-insert-request').on('click', function(e) {
-        e.preventDefault();
-        openModalRichiesta();
-    });
-
-    // Chiudi modale
-    $('#closeModal, #cancellaRichiesta').on('click', function(e) {
-        e.preventDefault();
-        closeModalRichiesta();
-    });
-
-    // Chiudi modale cliccando fuori
-    $('#modalRichiesta').on('click', function(e) {
-        if (e.target === this) {
-            closeModalRichiesta();
-        }
-    });
-
-    // Submit form richiesta
-    $('#formRichiesta').on('submit', function(e) {
-        e.preventDefault();
-        inviaRichiestaSoccorso();
-    });
-});
-
-// Verifica autenticazione
 function checkAuthentication() {
     const token = sessionStorage.getItem('authToken');
     
@@ -44,7 +13,6 @@ function checkAuthentication() {
         return;
     }
 
-    // Verifica validità token
     $.ajax({
         url: 'http://localhost:8080/soccorso-web-services/api/auth/verify',
         type: 'GET',
@@ -60,7 +28,6 @@ function checkAuthentication() {
     });
 }
 
-// Funzione per il logout
 function logout() {
     sessionStorage.removeItem('authToken');
     sessionStorage.removeItem('userInfo');
@@ -77,15 +44,11 @@ function logout() {
     });
 }
 
-// Apri modale richiesta
 function openModalRichiesta() {
-    // Pulisci il form
     $('#formRichiesta')[0].reset();
     
-    // Preleva info utente dal sessionStorage
     const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
     
-    // Pre-compila alcuni campi se disponibili
     if (userInfo.nome && userInfo.cognome) {
         $('#richiedente').val(userInfo.nome + ' ' + userInfo.cognome);
     }
@@ -96,16 +59,280 @@ function openModalRichiesta() {
         $('#telefono').val(userInfo.telefono);
     }
     
-    // Mostra il modale
     $('#modalRichiesta').fadeIn(300);
 }
 
-// Chiudi modale richiesta
 function closeModalRichiesta() {
     $('#modalRichiesta').fadeOut(300);
 }
 
-// Invia richiesta di soccorso
+function openModalListaRichieste() {
+    currentPage = 1;
+    pageSize = 25;
+    resetFiltri();
+    $('#modalListaRichieste').fadeIn(300);
+    caricaRichieste();
+}
+
+function closeModalListaRichieste() {
+    $('#modalListaRichieste').fadeOut(300);
+}
+
+function applicaFiltri() {
+    currentFilters = {
+        stato: $('#filtroStato').val(),
+        periodo: $('#filtroData').val()
+    };
+    currentPage = 1;
+    caricaRichieste();
+}
+
+function resetFiltri() {
+    $('#filtroStato').val('');
+    $('#filtroData').val('');
+    currentFilters = {};
+    currentPage = 1;
+    if ($('#modalListaRichieste').is(':visible')) {
+        caricaRichieste();
+    }
+}
+
+function caricaRichieste() {
+    const token = sessionStorage.getItem('authToken');
+    
+    if (!token) {
+        alert('Sessione scaduta. Effettua nuovamente il login.');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    $('#loadingRichieste').show();
+    $('#tabellaRichieste').hide();
+    $('#noRichieste').hide();
+
+    let url = 'http://localhost:8080/soccorso-web-services/api/richieste';
+    let params = new URLSearchParams();
+    
+    params.append('page', currentPage.toString());
+    params.append('size', pageSize.toString());
+    
+    if (currentFilters.stato) {
+        params.append('stato', currentFilters.stato);
+    }
+    
+    if (currentFilters.periodo) {
+        params.append('periodo', currentFilters.periodo);
+    }
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            displayRichieste(response);
+        },
+        error: function(xhr, status, error) {
+            $('#loadingRichieste').hide();
+            
+            if (xhr.status === 401) {
+                alert('Sessione scaduta. Effettua nuovamente il login.');
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('userInfo');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            alert('Errore nel caricamento delle richieste: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
+function displayRichieste(richieste) {
+    $('#loadingRichieste').hide();
+    
+    if (!richieste || richieste.length === 0) {
+        $('#noRichieste').show();
+        $('#tabellaRichieste').hide();
+        updatePaginationInfo(0, 0);
+        return;
+    }
+
+    let richiesteData = richieste;
+    if (richieste.content) {
+        richiesteData = richieste.content;
+        totalItems = richieste.totalElements || richieste.length;
+        totalPages = richieste.totalPages || 1;
+        currentPage = (richieste.number || 0) + 1;
+    } else {
+        totalItems = richieste.length;
+        totalPages = Math.ceil(totalItems / pageSize);
+    }
+
+    const tbody = $('#bodyTabellaRichieste');
+    tbody.empty();
+
+    richiesteData.forEach(function(richiesta) {
+        const row = createRichiestaRow(richiesta);
+        tbody.append(row);
+    });
+
+    $('#tabellaRichieste').show();
+    updatePaginationInfo(richiesteData.length, totalItems);
+    updatePaginationControls();
+}
+
+function createRichiestaRow(richiesta) {
+    const statoBadge = `<span class="stato-badge stato-${richiesta.statoRichiesta}">${richiesta.statoRichiesta}</span>`;
+    const dataFormatted = formatDate(richiesta.dataCreazione);
+    const descrizioneShort = richiesta.descrizione && richiesta.descrizione.length > 50 ? 
+        richiesta.descrizione.substring(0, 50) + '...' : (richiesta.descrizione || '');
+    
+    return `
+        <tr data-id="${richiesta.id}">
+            <td>${richiesta.id}</td>
+            <td>${richiesta.richiedente || 'N/A'}</td>
+            <td title="${richiesta.descrizione || ''}">${descrizioneShort}</td>
+            <td>${richiesta.indirizzo || 'N/A'}</td>
+            <td>${statoBadge}</td>
+            <td>${dataFormatted}</td>
+            <td>
+                <button class="btn-action btn-view" onclick="visualizzaDettagliRichiesta(${richiesta.id})">
+                    👁️ Visualizza
+                </button>
+                ${richiesta.statoRichiesta === 'NUOVA' || richiesta.statoRichiesta === 'IN_ELABORAZIONE' ? 
+                    `<button class="btn-action btn-edit" onclick="modificaStatoRichiesta(${richiesta.id})">
+                        ✏️ Modifica
+                    </button>` : ''
+                }
+                ${richiesta.statoRichiesta === 'NUOVA' ? 
+                    `<button class="btn-action btn-delete" onclick="eliminaRichiesta(${richiesta.id})">
+                        🗑️ Elimina
+                    </button>` : ''
+                }
+            </td>
+        </tr>
+    `;
+}
+
+function updatePaginationInfo(currentItems, totalItems) {
+    const start = totalItems > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
+    const end = Math.min(start + currentItems - 1, totalItems);
+    $('#infoPaginazione').text(`Showing ${start}-${end} of ${totalItems} results`);
+}
+
+function updatePaginationControls() {
+    $('#numeroPagina').text(`Pagina ${currentPage} di ${totalPages}`);
+    
+    $('#btnPrimaPagina, #btnPaginaPrecedente').prop('disabled', currentPage <= 1);
+    $('#btnPaginaSuccessiva, #btnUltimaPagina').prop('disabled', currentPage >= totalPages);
+}
+
+function visualizzaDettagliRichiesta(id) {
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: `http://localhost:8080/soccorso-web-services/api/richieste/${id}`,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(richiesta) {
+            let dettagli = `🆔 ID: ${richiesta.id}
+👤 Richiedente: ${richiesta.richiedente || 'N/A'}
+📋 Descrizione: ${richiesta.descrizione}
+📍 Indirizzo: ${richiesta.indirizzo}
+📞 Telefono: ${richiesta.telefonoContattoRichiesta || 'N/A'}
+📧 Email: ${richiesta.emailContattoRichiesta || 'N/A'}
+🔄 Stato: ${richiesta.statoRichiesta}
+📅 Data Creazione: ${formatDate(richiesta.dataCreazione)}
+${richiesta.livelloSuccesso ? `✅ Livello Successo: ${richiesta.livelloSuccesso}` : ''}`;
+            
+            alert(dettagli);
+        },
+        error: function(xhr) {
+            alert('Errore nel caricamento dei dettagli: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
+function modificaStatoRichiesta(id) {
+    const nuovoStato = prompt(`Seleziona nuovo stato per la richiesta ${id}:
+
+1 - IN_ELABORAZIONE
+2 - ASSEGNATA  
+3 - IN_CORSO
+4 - COMPLETATA
+5 - ANNULLATA
+
+Inserisci il numero:`);
+
+    if (!nuovoStato) return;
+
+    const statiMap = {
+        '1': 'IN_ELABORAZIONE',
+        '2': 'ASSEGNATA',
+        '3': 'IN_CORSO', 
+        '4': 'COMPLETATA',
+        '5': 'ANNULLATA'
+    };
+
+    const statoEnum = statiMap[nuovoStato];
+    if (!statoEnum) {
+        alert('Selezione non valida');
+        return;
+    }
+
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: `http://localhost:8080/soccorso-web-services/api/richieste/${id}/stato?stato=${statoEnum}`,
+        type: 'PUT',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function() {
+            alert('✅ Stato aggiornato con successo!');
+            caricaRichieste();
+        },
+        error: function(xhr) {
+            alert('❌ Errore nell\'aggiornamento: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
+function eliminaRichiesta(id) {
+    if (!confirm(`Sei sicuro di voler eliminare la richiesta ${id}?\nQuesta azione non può essere annullata.`)) {
+        return;
+    }
+
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: `http://localhost:8080/soccorso-web-services/api/richieste/${id}`,
+        type: 'DELETE',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function() {
+            alert('✅ Richiesta eliminata con successo!');
+            caricaRichieste();
+        },
+        error: function(xhr) {
+            alert('❌ Errore nell\'eliminazione: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
 function inviaRichiestaSoccorso() {
     const token = sessionStorage.getItem('authToken');
     const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}');
@@ -116,7 +343,6 @@ function inviaRichiestaSoccorso() {
         return;
     }
 
-    // Raccogli i dati dal form
     const richiestaData = {
         usersId: userInfo.id ? userInfo.id.toString() : null,
         richiedente: $('#richiedente').val().trim(),
@@ -126,7 +352,6 @@ function inviaRichiestaSoccorso() {
         emailContattoRichiesta: $('#email').val().trim()
     };
 
-    // Validazioni lato client
     if (!richiestaData.descrizione) {
         alert('La descrizione dell\'emergenza è obbligatoria.');
         $('#descrizione').focus();
@@ -145,7 +370,6 @@ function inviaRichiestaSoccorso() {
         return;
     }
 
-    // Validazione telefono se inserito
     if (richiestaData.telefonoContattoRichiesta && 
         !/^[0-9]{10}$/.test(richiestaData.telefonoContattoRichiesta)) {
         alert('Il numero di telefono deve contenere esattamente 10 cifre.');
@@ -153,7 +377,6 @@ function inviaRichiestaSoccorso() {
         return;
     }
 
-    // Validazione email se inserita
     if (richiestaData.emailContattoRichiesta && 
         !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(richiestaData.emailContattoRichiesta)) {
         alert('Inserire un indirizzo email valido.');
@@ -161,10 +384,8 @@ function inviaRichiestaSoccorso() {
         return;
     }
 
-    // Disabilita il bottone per evitare doppi invii
     $('#confermaRichiesta').prop('disabled', true).text('Invio in corso...');
 
-    // Invio della richiesta
     $.ajax({
         url: 'http://localhost:8080/soccorso-web-services/api/richieste',
         type: 'POST',
@@ -180,9 +401,6 @@ function inviaRichiestaSoccorso() {
                   'La tua richiesta è stata registrata e sarà processata al più presto.');
             
             closeModalRichiesta();
-            
-            // Opzionale: mostra i dettagli della richiesta creata
-            console.log('Richiesta creata:', response);
         },
         error: function(xhr, status, error) {
             let errorMessage = 'Errore nell\'invio della richiesta.';
@@ -204,23 +422,127 @@ function inviaRichiestaSoccorso() {
             }
             
             alert('❌ ' + errorMessage);
-            console.error('Errore invio richiesta:', xhr.responseText);
         },
         complete: function() {
-            // Riabilita il bottone
             $('#confermaRichiesta').prop('disabled', false).text('🆘 Invia Richiesta');
         }
     });
 }
 
-// Funzione di utilità per formattare le date
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleString('it-IT', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
+    if (!dateString) return 'N/A';
+    
+    try {
+        let date;
+        if (typeof dateString === 'number') {
+            date = new Date(dateString);
+        } else if (typeof dateString === 'string') {
+            date = new Date(dateString);
+        } else {
+            return 'N/A';
+        }
+        
+        if (isNaN(date.getTime())) {
+            return 'N/A';
+        }
+        
+        return date.toLocaleString('it-IT', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'Europe/Rome'
+        });
+    } catch (error) {
+        return 'N/A';
+    }
 }
+
+$(document).ready(function() {
+    checkAuthentication();
+
+    $('#logoutBtn').on('click', function(e) {
+        e.preventDefault();
+        logout();
+    });
+
+    $('#btn-insert-request').on('click', function(e) {
+        e.preventDefault();
+        openModalRichiesta();
+    });
+
+    $('#btn-list-requests').on('click', function(e) {
+        e.preventDefault();
+        openModalListaRichieste();
+    });
+
+    $('#closeModal, #cancellaRichiesta').on('click', function(e) {
+        e.preventDefault();
+        closeModalRichiesta();
+    });
+
+    $('#closeModalLista').on('click', function(e) {
+        e.preventDefault();
+        closeModalListaRichieste();
+    });
+
+    $('#applicaFiltri').on('click', function(e) {
+        e.preventDefault();
+        applicaFiltri();
+    });
+
+    $('#resetFiltri').on('click', function(e) {
+        e.preventDefault();
+        resetFiltri();
+    });
+
+    $('#pageSize').on('change', function() {
+        pageSize = parseInt($(this).val());
+        currentPage = 1;
+        caricaRichieste();
+    });
+
+    $('#btnPrimaPagina').on('click', function() {
+        if (currentPage > 1) {
+            currentPage = 1;
+            caricaRichieste();
+        }
+    });
+
+    $('#btnPaginaPrecedente').on('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            caricaRichieste();
+        }
+    });
+
+    $('#btnPaginaSuccessiva').on('click', function() {
+        if (currentPage < totalPages) {
+            currentPage++;
+            caricaRichieste();
+        }
+    });
+
+    $('#btnUltimaPagina').on('click', function() {
+        if (currentPage < totalPages) {
+            currentPage = totalPages;
+            caricaRichieste();
+        }
+    });
+
+    $('#modalRichiesta, #modalListaRichieste').on('click', function(e) {
+        if (e.target === this) {
+            if (this.id === 'modalRichiesta') {
+                closeModalRichiesta();
+            } else if (this.id === 'modalListaRichieste') {
+                closeModalListaRichieste();
+            }
+        }
+    });
+
+    $('#formRichiesta').on('submit', function(e) {
+        e.preventDefault();
+        inviaRichiestaSoccorso();
+    });
+});
