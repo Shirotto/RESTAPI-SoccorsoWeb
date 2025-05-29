@@ -251,12 +251,10 @@
     }
 }
 
-/* Aggiungi questi stili al tuo file CSS esistente */
-
 /* Modale più grande per le liste */
 .modal-large {
     width: 95%;
-    max-width: 1200px;
+    max-width: 1400px;
     height: 90vh;
     overflow-y: auto;
 }
@@ -361,12 +359,35 @@
     text-transform: uppercase;
 }
 
-.stato-NUOVA { background: #6c757d; }
-.stato-IN_ELABORAZIONE { background: #007bff; }
-.stato-ASSEGNATA { background: #fd7e14; }
-.stato-IN_CORSO { background: #ffc107; color: #333; }
-.stato-COMPLETATA { background: #28a745; }
-.stato-ANNULLATA { background: #dc3545; }
+.stato-PENDING_VALIDATION {
+    background-color: #fff3e0;
+    color: #f57c00;
+    border: 1px solid #ffcc02;
+}
+
+.stato-ATTIVA {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+}
+
+.stato-IN_CORSO {
+    background-color: #fff8e1;
+    color: #f9a825;
+    border: 1px solid #ffecb3;
+}
+
+.stato-CHIUSA {
+    background-color: #e8f5e8;
+    color: #388e3c;
+    border: 1px solid #c8e6c9;
+}
+
+.stato-IGNORATA {
+    background-color: #ffebee;
+    color: #d32f2f;
+    border: 1px solid #ffcdd2;
+}
 
 /* Bottoni azioni */
 .btn-action {

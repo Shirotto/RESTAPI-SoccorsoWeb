@@ -206,12 +206,12 @@ function createRichiestaRow(richiesta) {
                 <button class="btn-action btn-view" onclick="visualizzaDettagliRichiesta(${richiesta.id})">
                     👁️ Visualizza
                 </button>
-                ${richiesta.statoRichiesta === 'NUOVA' || richiesta.statoRichiesta === 'IN_ELABORAZIONE' ? 
+                ${richiesta.statoRichiesta === 'PENDING_VALIDATION' || richiesta.statoRichiesta === 'ATTIVA' ? 
                     `<button class="btn-action btn-edit" onclick="modificaStatoRichiesta(${richiesta.id})">
                         ✏️ Modifica
                     </button>` : ''
                 }
-                ${richiesta.statoRichiesta === 'NUOVA' ? 
+                ${richiesta.statoRichiesta === 'PENDING_VALIDATION' ? 
                     `<button class="btn-action btn-delete" onclick="eliminaRichiesta(${richiesta.id})">
                         🗑️ Elimina
                     </button>` : ''
@@ -266,22 +266,22 @@ ${richiesta.livelloSuccesso ? `✅ Livello Successo: ${richiesta.livelloSuccesso
 function modificaStatoRichiesta(id) {
     const nuovoStato = prompt(`Seleziona nuovo stato per la richiesta ${id}:
 
-1 - IN_ELABORAZIONE
-2 - ASSEGNATA  
+1 - PENDING_VALIDATION
+2 - ATTIVA  
 3 - IN_CORSO
-4 - COMPLETATA
-5 - ANNULLATA
+4 - CHIUSA
+5 - IGNORATA
 
 Inserisci il numero:`);
 
     if (!nuovoStato) return;
 
     const statiMap = {
-        '1': 'IN_ELABORAZIONE',
-        '2': 'ASSEGNATA',
+        '1': 'PENDING_VALIDATION',
+        '2': 'ATTIVA',
         '3': 'IN_CORSO', 
-        '4': 'COMPLETATA',
-        '5': 'ANNULLATA'
+        '4': 'CHIUSA',
+        '5': 'IGNORATA'
     };
 
     const statoEnum = statiMap[nuovoStato];
@@ -397,7 +397,7 @@ function inviaRichiestaSoccorso() {
         success: function(response) {
             alert('✅ Richiesta di soccorso inviata con successo!\n' +
                   'ID Richiesta: ' + (response.id || 'N/A') + '\n' +
-                  'Stato: NUOVA\n\n' +
+                  'Stato: PENDING_VALIDATION\n\n' +
                   'La tua richiesta è stata registrata e sarà processata al più presto.');
             
             closeModalRichiesta();
@@ -429,32 +429,68 @@ function inviaRichiestaSoccorso() {
     });
 }
 
-function formatDate(dateString) {
-    if (!dateString) return 'N/A';
+function formatDate(dateInput) {
+    if (!dateInput) return 'N/A';
     
     try {
+        console.log('Input data:', dateInput);
+        
         let date;
-        if (typeof dateString === 'number') {
-            date = new Date(dateString);
-        } else if (typeof dateString === 'string') {
-            date = new Date(dateString);
-        } else {
+        
+        // Se è un array (formato dal server Java)
+        if (Array.isArray(dateInput) && dateInput.length >= 6) {
+            const [year, month, day, hour, minute, second] = dateInput;
+            // JavaScript mesi sono 0-based, quindi month-1
+            date = new Date(year, month - 1, day, hour, minute, second || 0);
+            console.log('Parsed from array:', date);
+        }
+        // Se è una stringa
+        else if (typeof dateInput === 'string') {
+            const cleanDateString = dateInput.trim();
+            
+            // Formato MySQL: "2025-05-29 11:42:34"
+            const mysqlMatch = cleanDateString.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/);
+            if (mysqlMatch) {
+                const [, year, month, day, hour, minute, second] = mysqlMatch;
+                date = new Date(
+                    parseInt(year), 
+                    parseInt(month) - 1, 
+                    parseInt(day), 
+                    parseInt(hour), 
+                    parseInt(minute), 
+                    parseInt(second)
+                );
+            } else {
+                date = new Date(cleanDateString);
+            }
+        }
+        // Se è un numero (timestamp)
+        else if (typeof dateInput === 'number') {
+            date = new Date(dateInput);
+        }
+        else {
+            console.error('Formato data non riconosciuto:', dateInput);
             return 'N/A';
         }
         
         if (isNaN(date.getTime())) {
+            console.error('Data non valida:', dateInput);
             return 'N/A';
         }
         
-        return date.toLocaleString('it-IT', {
+        const formatted = date.toLocaleString('it-IT', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
-            minute: '2-digit',
-            timeZone: 'Europe/Rome'
+            minute: '2-digit'
         });
+        
+        console.log('Data formattata:', formatted);
+        return formatted;
+        
     } catch (error) {
+        console.error('Errore nel parsing della data:', error);
         return 'N/A';
     }
 }
