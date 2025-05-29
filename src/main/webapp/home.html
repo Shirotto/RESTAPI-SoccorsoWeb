@@ -27,7 +27,7 @@
                         <span class="icon">📊</span>
                         Lista Richieste (Filtrate)
                     </button>
-                    <button class="btn" id="btn-list-unsuccessful">
+                    <button class="btn" id="btn-negative-requests">
                         <span class="icon">⚠️</span>
                         Richieste Non Totalmente Positive
                     </button>
@@ -144,7 +144,7 @@
     <div id="modalListaRichieste" class="modal">
         <div class="modal-content modal-large">
             <div class="modal-header">
-                <h2>📊 Lista Richieste di Soccorso</h2>
+                <h2 id="titoloModalLista">📊 Lista Richieste di Soccorso</h2>
                 <span class="close" id="closeModalLista">&times;</span>
             </div>
 
@@ -191,7 +191,7 @@
             <div id="tabellaRichieste" class="table-container">
                 <table class="richieste-table">
                     <thead>
-                        <tr>
+                        <tr id="headerTabella">
                             <th>ID</th>
                             <th>Richiedente</th>
                             <th>Descrizione</th>

@@ -1,6 +1,7 @@
 package it.univaq.swa.soccorsoweb.services;
 
 import it.univaq.swa.soccorsoweb.model.User;
+import it.univaq.swa.soccorsoweb.model.UserRole;
 import it.univaq.swa.soccorsoweb.utils.JPAUtil;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
@@ -20,7 +21,13 @@ public class UserService {
         try {
             em.getTransaction().begin();           
             // Hash della password prima di salvare
-            user.setPassword(hashPassword(user.getPassword()));            
+            user.setPassword(hashPassword(user.getPassword()));
+            
+            // Se il ruolo non è specificato, imposta come UTENTE di default
+            if (user.getRole() == null) {
+                user.setRole(UserRole.UTENTE);
+            }
+            
             em.persist(user);
             em.getTransaction().commit();
         } catch (Exception e) {
@@ -59,6 +66,21 @@ public class UserService {
     }
     
     /**
+     * Trova utenti per ruolo
+     */
+    public List<User> findUsersByRole(UserRole role) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<User> query = em.createQuery(
+                "SELECT u FROM User u WHERE u.role = :role", User.class);
+            query.setParameter("role", role);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+    
+    /**
      * Trova un utente per email
      */
     public User findUserByEmail(String email) {
@@ -84,6 +106,33 @@ public class UserService {
             return user;
         }
         return null;
+    }
+    
+    /**
+     * Aggiorna il ruolo di un utente (solo admin può farlo)
+     */
+    public void updateUserRole(Long userId, UserRole newRole, User currentUser) {
+        if (!currentUser.isAdmin()) {
+            throw new SecurityException("Solo gli admin possono modificare i ruoli");
+        }
+        
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            User user = em.find(User.class, userId);
+            if (user != null) {
+                user.setRole(newRole);
+                em.merge(user);
+            }
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw new RuntimeException("Errore nell'aggiornare il ruolo utente", e);
+        } finally {
+            em.close();
+        }
     }
     
     /**

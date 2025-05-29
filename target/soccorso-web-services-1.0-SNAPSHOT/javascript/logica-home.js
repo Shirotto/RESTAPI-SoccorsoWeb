@@ -74,6 +74,22 @@ function openModalListaRichieste() {
     caricaRichieste();
 }
 
+function openModalRichiesteNonPositive() {
+    currentPage = 1;
+    pageSize = 25;
+    
+    currentFilters = {
+        stato: 'CHIUSA',
+        livelloSuccesso: 'sotto5'
+    };
+    
+    $('#filtroStato').val('CHIUSA');
+    $('#filtroData').val('');
+    
+    $('#modalListaRichieste').fadeIn(300);
+    caricaRichiesteNonPositive();
+}
+
 function closeModalListaRichieste() {
     $('#modalListaRichieste').fadeOut(300);
 }
@@ -154,6 +170,86 @@ function caricaRichieste() {
     });
 }
 
+function caricaRichiesteNonPositive() {
+    const token = sessionStorage.getItem('authToken');
+    
+    if (!token) {
+        alert('Sessione scaduta. Effettua nuovamente il login.');
+        window.location.href = 'index.html';
+        return;
+    }
+
+    $('#loadingRichieste').show();
+    $('#tabellaRichieste').hide();
+    $('#noRichieste').hide();
+
+    let url = 'http://localhost:8080/soccorso-web-services/api/richieste';
+    let params = new URLSearchParams();
+    
+    params.append('page', currentPage.toString());
+    params.append('size', pageSize.toString());
+    params.append('stato', 'CHIUSA');
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            if (response && response.content) {
+                const richiesteFiltrate = response.content.filter(function(richiesta) {
+                    if (richiesta.livelloSuccesso) {
+                        const livello = parseInt(richiesta.livelloSuccesso);
+                        return !isNaN(livello) && livello < 5;
+                    }
+                    return false;
+                });
+                
+                const responseFiltered = {
+                    content: richiesteFiltrate,
+                    totalElements: richiesteFiltrate.length,
+                    totalPages: Math.ceil(richiesteFiltrate.length / pageSize),
+                    number: 0,
+                    size: pageSize
+                };
+                
+                displayRichiesteNonPositive(responseFiltered);
+            } else if (Array.isArray(response)) {
+                const richiesteFiltrate = response.filter(function(richiesta) {
+                    if (richiesta.statoRichiesta === 'CHIUSA' && richiesta.livelloSuccesso) {
+                        const livello = parseInt(richiesta.livelloSuccesso);
+                        return !isNaN(livello) && livello < 5;
+                    }
+                    return false;
+                });
+                
+                displayRichiesteNonPositive(richiesteFiltrate);
+            } else {
+                displayRichiesteNonPositive([]);
+            }
+        },
+        error: function(xhr, status, error) {
+            $('#loadingRichieste').hide();
+            
+            if (xhr.status === 401) {
+                alert('Sessione scaduta. Effettua nuovamente il login.');
+                sessionStorage.removeItem('authToken');
+                sessionStorage.removeItem('userInfo');
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            alert('Errore nel caricamento delle richieste: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
 function displayRichieste(richieste) {
     $('#loadingRichieste').hide();
     
@@ -180,6 +276,41 @@ function displayRichieste(richieste) {
 
     richiesteData.forEach(function(richiesta) {
         const row = createRichiestaRow(richiesta);
+        tbody.append(row);
+    });
+
+    $('#tabellaRichieste').show();
+    updatePaginationInfo(richiesteData.length, totalItems);
+    updatePaginationControls();
+}
+
+function displayRichiesteNonPositive(richieste) {
+    $('#loadingRichieste').hide();
+    
+    let richiesteData = richieste;
+    if (richieste.content) {
+        richiesteData = richieste.content;
+        totalItems = richieste.totalElements || richieste.length;
+        totalPages = richieste.totalPages || 1;
+        currentPage = (richieste.number || 0) + 1;
+    } else {
+        richiesteData = richieste;
+        totalItems = richieste.length;
+        totalPages = Math.ceil(totalItems / pageSize);
+    }
+    
+    if (!richiesteData || richiesteData.length === 0) {
+        $('#noRichieste').show();
+        $('#tabellaRichieste').hide();
+        updatePaginationInfo(0, 0);
+        return;
+    }
+
+    const tbody = $('#bodyTabellaRichieste');
+    tbody.empty();
+
+    richiesteData.forEach(function(richiesta) {
+        const row = createRichiestaRowNonPositive(richiesta);
         tbody.append(row);
     });
 
@@ -221,6 +352,33 @@ function createRichiestaRow(richiesta) {
     `;
 }
 
+function createRichiestaRowNonPositive(richiesta) {
+    const statoBadge = `<span class="stato-badge stato-${richiesta.statoRichiesta}">${richiesta.statoRichiesta}</span>`;
+    const dataFormatted = formatDate(richiesta.dataCreazione);
+    const descrizioneShort = richiesta.descrizione && richiesta.descrizione.length > 50 ? 
+        richiesta.descrizione.substring(0, 50) + '...' : (richiesta.descrizione || '');
+    
+    const livelloSuccesso = richiesta.livelloSuccesso ? parseInt(richiesta.livelloSuccesso) : 0;
+    const livelloDisplay = `<span style="color: #dc3545; font-weight: bold;">${livelloSuccesso}/10</span>`;
+    
+    return `
+        <tr data-id="${richiesta.id}" style="background-color: #fff3cd;">
+            <td>${richiesta.id}</td>
+            <td>${richiesta.richiedente || 'N/A'}</td>
+            <td title="${richiesta.descrizione || ''}">${descrizioneShort}</td>
+            <td>${richiesta.indirizzo || 'N/A'}</td>
+            <td>${statoBadge}</td>
+            <td>${livelloDisplay}</td>
+            <td>${dataFormatted}</td>
+            <td>
+                <button class="btn-action btn-view" onclick="visualizzaDettagliRichiesta(${richiesta.id})">
+                    👁️ Visualizza
+                </button>
+            </td>
+        </tr>
+    `;
+}
+
 function updatePaginationInfo(currentItems, totalItems) {
     const start = totalItems > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
     const end = Math.min(start + currentItems - 1, totalItems);
@@ -234,6 +392,23 @@ function updatePaginationControls() {
     $('#btnPaginaSuccessiva, #btnUltimaPagina').prop('disabled', currentPage >= totalPages);
 }
 
+function getLivelloSuccessoDescrizione(livello) {
+    const descrizioni = {
+        1: 'Fallimento completo',
+        2: 'Fallimento grave', 
+        3: 'Fallimento moderato',
+        4: 'Risultato insufficiente',
+        5: 'Risultato medio/parziale',
+        6: 'Risultato discreto',
+        7: 'Buon risultato',
+        8: 'Ottimo risultato',
+        9: 'Eccellente risultato',
+        10: 'Successo totale'
+    };
+    
+    return descrizioni[livello] || 'Livello non definito';
+}
+
 function visualizzaDettagliRichiesta(id) {
     const token = sessionStorage.getItem('authToken');
     
@@ -244,6 +419,17 @@ function visualizzaDettagliRichiesta(id) {
             'Authorization': 'Bearer ' + token
         },
         success: function(richiesta) {
+            let livelloSuccessoDisplay = '';
+            if (richiesta.livelloSuccesso) {
+                const livelloNum = parseInt(richiesta.livelloSuccesso);
+                if (!isNaN(livelloNum) && livelloNum >= 1 && livelloNum <= 10) {
+                    const descrizione = getLivelloSuccessoDescrizione(livelloNum);
+                    livelloSuccessoDisplay = `✅ Livello Successo: ${livelloNum}/10 (${descrizione})`;
+                } else {
+                    livelloSuccessoDisplay = `✅ Livello Successo: ${richiesta.livelloSuccesso}`;
+                }
+            }
+            
             let dettagli = `🆔 ID: ${richiesta.id}
 👤 Richiedente: ${richiesta.richiedente || 'N/A'}
 📋 Descrizione: ${richiesta.descrizione}
@@ -252,7 +438,7 @@ function visualizzaDettagliRichiesta(id) {
 📧 Email: ${richiesta.emailContattoRichiesta || 'N/A'}
 🔄 Stato: ${richiesta.statoRichiesta}
 📅 Data Creazione: ${formatDate(richiesta.dataCreazione)}
-${richiesta.livelloSuccesso ? `✅ Livello Successo: ${richiesta.livelloSuccesso}` : ''}`;
+${livelloSuccessoDisplay}`;
             
             alert(dettagli);
         },
@@ -290,21 +476,98 @@ Inserisci il numero:`);
         return;
     }
 
+    if (statoEnum === 'CHIUSA') {
+        const livelloSuccesso = prompt(`La richiesta sarà chiusa. Inserisci il livello di successo:
+
+📊 SCALA DA 1 A 10:
+1️⃣ = Fallimento completo
+2️⃣ = Fallimento grave
+3️⃣ = Fallimento moderato
+4️⃣ = Risultato insufficiente
+5️⃣ = Risultato medio/parziale
+6️⃣ = Risultato discreto
+7️⃣ = Buon risultato
+8️⃣ = Ottimo risultato
+9️⃣ = Eccellente risultato
+🔟 = Successo totale
+
+Inserisci un numero da 1 a 10:`);
+
+        if (!livelloSuccesso) {
+            alert('Il livello di successo è obbligatorio per chiudere una richiesta');
+            return;
+        }
+
+        const livelloNumerico = parseInt(livelloSuccesso.trim());
+        
+        if (isNaN(livelloNumerico) || livelloNumerico < 1 || livelloNumerico > 10) {
+            alert('❌ Il livello di successo deve essere un numero da 1 a 10\n\n1 = Fallimento completo\n10 = Successo totale');
+            return;
+        }
+
+        aggiornaStatoConLivello(id, statoEnum, livelloNumerico.toString());
+    } else {
+        aggiornaStato(id, statoEnum);
+    }
+}
+
+function aggiornaStato(id, stato) {
     const token = sessionStorage.getItem('authToken');
     
     $.ajax({
-        url: `http://localhost:8080/soccorso-web-services/api/richieste/${id}/stato?stato=${statoEnum}`,
+        url: `http://localhost:8080/soccorso-web-services/api/richieste/${id}/stato?stato=${stato}`,
         type: 'PUT',
         headers: {
             'Authorization': 'Bearer ' + token
         },
         success: function() {
             alert('✅ Stato aggiornato con successo!');
-            caricaRichieste();
+            if (currentFilters.livelloSuccesso === 'sotto5') {
+                caricaRichiesteNonPositive();
+            } else {
+                caricaRichieste();
+            }
         },
         error: function(xhr) {
             alert('❌ Errore nell\'aggiornamento: ' + 
-                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+                  (xhr.responseJSON?.error || xhr.responseJSON?.message || 'Errore sconosciuto'));
+        }
+    });
+}
+
+function aggiornaStatoConLivello(id, stato, livelloSuccesso) {
+    const token = sessionStorage.getItem('authToken');
+    
+    const livelloCodificato = encodeURIComponent(livelloSuccesso);
+    
+    $.ajax({
+        url: `http://localhost:8080/soccorso-web-services/api/richieste/${id}/stato?stato=${stato}&livelloSuccesso=${livelloCodificato}`,
+        type: 'PUT',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            const livelloNum = parseInt(livelloSuccesso);
+            const descrizioneSuccesso = getLivelloSuccessoDescrizione(livelloNum);
+            alert(`✅ Richiesta chiusa con successo!\n\nStato: ${stato}\nLivello di Successo: ${livelloSuccesso}/10\nDescrizione: ${descrizioneSuccesso}`);
+            if (currentFilters.livelloSuccesso === 'sotto5') {
+                caricaRichiesteNonPositive();
+            } else {
+                caricaRichieste();
+            }
+        },
+        error: function(xhr) {
+            let errorMsg = 'Errore sconosciuto';
+            
+            if (xhr.responseJSON?.error) {
+                errorMsg = xhr.responseJSON.error;
+            } else if (xhr.responseJSON?.message) {
+                errorMsg = xhr.responseJSON.message;
+            } else if (xhr.status === 400) {
+                errorMsg = 'Dati non validi. Il livello di successo è obbligatorio per chiudere una richiesta.';
+            }
+            
+            alert('❌ Errore nell\'aggiornamento: ' + errorMsg);
         }
     });
 }
@@ -324,7 +587,11 @@ function eliminaRichiesta(id) {
         },
         success: function() {
             alert('✅ Richiesta eliminata con successo!');
-            caricaRichieste();
+            if (currentFilters.livelloSuccesso === 'sotto5') {
+                caricaRichiesteNonPositive();
+            } else {
+                caricaRichieste();
+            }
         },
         error: function(xhr) {
             alert('❌ Errore nell\'eliminazione: ' + 
@@ -433,22 +700,15 @@ function formatDate(dateInput) {
     if (!dateInput) return 'N/A';
     
     try {
-        console.log('Input data:', dateInput);
-        
         let date;
         
-        // Se è un array (formato dal server Java)
         if (Array.isArray(dateInput) && dateInput.length >= 6) {
             const [year, month, day, hour, minute, second] = dateInput;
-            // JavaScript mesi sono 0-based, quindi month-1
             date = new Date(year, month - 1, day, hour, minute, second || 0);
-            console.log('Parsed from array:', date);
         }
-        // Se è una stringa
         else if (typeof dateInput === 'string') {
             const cleanDateString = dateInput.trim();
             
-            // Formato MySQL: "2025-05-29 11:42:34"
             const mysqlMatch = cleanDateString.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/);
             if (mysqlMatch) {
                 const [, year, month, day, hour, minute, second] = mysqlMatch;
@@ -464,17 +724,14 @@ function formatDate(dateInput) {
                 date = new Date(cleanDateString);
             }
         }
-        // Se è un numero (timestamp)
         else if (typeof dateInput === 'number') {
             date = new Date(dateInput);
         }
         else {
-            console.error('Formato data non riconosciuto:', dateInput);
             return 'N/A';
         }
         
         if (isNaN(date.getTime())) {
-            console.error('Data non valida:', dateInput);
             return 'N/A';
         }
         
@@ -486,11 +743,9 @@ function formatDate(dateInput) {
             minute: '2-digit'
         });
         
-        console.log('Data formattata:', formatted);
         return formatted;
         
     } catch (error) {
-        console.error('Errore nel parsing della data:', error);
         return 'N/A';
     }
 }
@@ -511,6 +766,11 @@ $(document).ready(function() {
     $('#btn-list-requests').on('click', function(e) {
         e.preventDefault();
         openModalListaRichieste();
+    });
+
+    $('#btn-negative-requests').on('click', function(e) {
+        e.preventDefault();
+        openModalRichiesteNonPositive();
     });
 
     $('#closeModal, #cancellaRichiesta').on('click', function(e) {
@@ -536,34 +796,54 @@ $(document).ready(function() {
     $('#pageSize').on('change', function() {
         pageSize = parseInt($(this).val());
         currentPage = 1;
-        caricaRichieste();
+        if (currentFilters.livelloSuccesso === 'sotto5') {
+            caricaRichiesteNonPositive();
+        } else {
+            caricaRichieste();
+        }
     });
 
     $('#btnPrimaPagina').on('click', function() {
         if (currentPage > 1) {
             currentPage = 1;
-            caricaRichieste();
+            if (currentFilters.livelloSuccesso === 'sotto5') {
+                caricaRichiesteNonPositive();
+            } else {
+                caricaRichieste();
+            }
         }
     });
 
     $('#btnPaginaPrecedente').on('click', function() {
         if (currentPage > 1) {
             currentPage--;
-            caricaRichieste();
+            if (currentFilters.livelloSuccesso === 'sotto5') {
+                caricaRichiesteNonPositive();
+            } else {
+                caricaRichieste();
+            }
         }
     });
 
     $('#btnPaginaSuccessiva').on('click', function() {
         if (currentPage < totalPages) {
             currentPage++;
-            caricaRichieste();
+            if (currentFilters.livelloSuccesso === 'sotto5') {
+                caricaRichiesteNonPositive();
+            } else {
+                caricaRichieste();
+            }
         }
     });
 
     $('#btnUltimaPagina').on('click', function() {
         if (currentPage < totalPages) {
             currentPage = totalPages;
-            caricaRichieste();
+            if (currentFilters.livelloSuccesso === 'sotto5') {
+                caricaRichiesteNonPositive();
+            } else {
+                caricaRichieste();
+            }
         }
     });
 

@@ -6,6 +6,7 @@ D:\Lavoro\Github\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\dto\RichiestaR
 D:\Lavoro\Github\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\model\Richiesta_soccorso.java
 D:\Lavoro\Github\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\model\StatoRichiesta.java
 D:\Lavoro\Github\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\model\User.java
+D:\Lavoro\Github\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\model\UserRole.java
 D:\Lavoro\Github\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\resources\AuthResource.java
 D:\Lavoro\Github\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\resources\RichiestaSoccorsoResource.java
 D:\Lavoro\Github\sviluppo\src\main\java\it\univaq\swa\soccorsoweb\resources\UserResource.java

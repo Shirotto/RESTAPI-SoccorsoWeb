@@ -9,12 +9,13 @@ CREATE TABLE IF NOT EXISTS users (
     telefono VARCHAR(50),
     indirizzo VARCHAR(100),
     email VARCHAR(100) NOT NULL,
-    password VARCHAR(100) NOT NULL
+    password VARCHAR(100) NOT NULL,
+    role ENUM('UTENTE', 'ADMIN') DEFAULT 'UTENTE' NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS richieste_soccorso (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    users_id VARCHAR(250),
+    users_id BIGINT,
     richiedente VARCHAR(250),
     descrizione VARCHAR(250) NOT NULL,
     indirizzo VARCHAR(255) NOT NULL,
@@ -34,3 +35,6 @@ CREATE TABLE IF NOT EXISTS richieste_soccorso (
     validation_token VARCHAR(255) UNIQUE NULL,
     FOREIGN KEY (users_id) REFERENCES users(id)
 );
+
+INSERT INTO users (nome, cognome, telefono, indirizzo, email, password, role) 
+VALUES ('Admin', 'Sistema', '1234567890', 'Sede Centrale', 'admin@soccorsoweb.it', SHA2('admin123', 256), 'ADMIN');

@@ -3,11 +3,14 @@ package it.univaq.swa.soccorsoweb.resources;
 import it.univaq.swa.soccorsoweb.dto.LoginRequest;
 import it.univaq.swa.soccorsoweb.dto.LoginResponse;
 import it.univaq.swa.soccorsoweb.model.User;
+import it.univaq.swa.soccorsoweb.model.UserRole;
 import it.univaq.swa.soccorsoweb.security.JwtUtil;
 import it.univaq.swa.soccorsoweb.services.UserService;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.HashMap;
+import java.util.Map;
 
 @Path("/auth")
 @Produces(MediaType.APPLICATION_JSON)
@@ -46,8 +49,8 @@ public class AuthResource {
                     .build();
             }
             
-            // Genera il token JWT
-            String token = jwtUtil.generateToken(user.getEmail(), user.getId());
+            // Genera il token JWT con il ruolo utente
+            String token = jwtUtil.generateToken(user.getEmail(), user.getId(), user.getRole());
             
             // Rimuovi la password dalla risposta
             user.setPassword(null);
@@ -93,10 +96,16 @@ public class AuthResource {
             if (jwtUtil.validateToken(token)) {
                 String email = jwtUtil.getEmailFromToken(token);
                 Long userId = jwtUtil.getUserIdFromToken(token);
+                UserRole role = jwtUtil.getUserRoleFromToken(token);
                 
-                return Response.ok()
-                    .entity("{\"valid\": true, \"email\": \"" + email + "\", \"userId\": " + userId + "}")
-                    .build();
+                Map<String, Object> response = new HashMap<>();
+                response.put("valid", true);
+                response.put("email", email);
+                response.put("userId", userId);
+                response.put("role", role.toString());
+                response.put("isAdmin", role == UserRole.ADMIN);
+                
+                return Response.ok(response).build();
             } else {
                 return Response.status(Response.Status.UNAUTHORIZED)
                     .entity("{\"message\": \"Token non valido o scaduto\"}")

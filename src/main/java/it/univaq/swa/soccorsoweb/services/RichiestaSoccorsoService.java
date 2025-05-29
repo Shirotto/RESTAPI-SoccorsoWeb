@@ -71,7 +71,7 @@ public class RichiestaSoccorsoService {
     /**
      * Trova richieste per user ID
      */
-    public List<Richiesta_soccorso> findRichiesteByUserId(String userId) {
+    public List<Richiesta_soccorso> findRichiesteByUserId(Long userId) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             TypedQuery<Richiesta_soccorso> query = em.createQuery(
@@ -122,9 +122,16 @@ public class RichiestaSoccorsoService {
     }
     
     /**
-     * Aggiorna lo stato di una richiesta
+     * Aggiorna lo stato di una richiesta (metodo originale per retrocompatibilità)
      */
     public Richiesta_soccorso updateStatoRichiesta(Long id, StatoRichiesta nuovoStato) {
+        return updateStatoRichiesta(id, nuovoStato, null);
+    }
+    
+    /**
+     * Aggiorna lo stato di una richiesta con livello di successo
+     */
+    public Richiesta_soccorso updateStatoRichiesta(Long id, StatoRichiesta nuovoStato, String livelloSuccesso) {
         EntityManager em = JPAUtil.getEntityManager();
         try {
             em.getTransaction().begin();
@@ -132,6 +139,12 @@ public class RichiestaSoccorsoService {
             Richiesta_soccorso richiesta = em.find(Richiesta_soccorso.class, id);
             if (richiesta != null) {
                 richiesta.setStatoRichiesta(nuovoStato);
+                
+                // Se lo stato è CHIUSA e il livello di successo è fornito, lo imposta
+                if (nuovoStato == StatoRichiesta.CHIUSA && livelloSuccesso != null && !livelloSuccesso.trim().isEmpty()) {
+                    richiesta.setLivelloSuccesso(livelloSuccesso.trim());
+                }
+                
                 em.merge(richiesta);
             }
             
@@ -252,6 +265,58 @@ public class RichiestaSoccorsoService {
             query.setParameter("startDate", startDate);
             query.setParameter("endDate", endDate);
             return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+    
+    /**
+     * Trova richieste per stato e periodo
+     */
+    public List<Richiesta_soccorso> findRichiesteByStatoAndPeriod(StatoRichiesta stato, LocalDateTime startDate, LocalDateTime endDate) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Richiesta_soccorso> query = em.createQuery(
+                "SELECT r FROM Richiesta_soccorso r WHERE r.statoRichiesta = :stato AND r.dataCreazione BETWEEN :startDate AND :endDate ORDER BY r.dataCreazione DESC", 
+                Richiesta_soccorso.class
+            );
+            query.setParameter("stato", stato);
+            query.setParameter("startDate", startDate);
+            query.setParameter("endDate", endDate);
+            return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+    
+    /**
+     * Conta tutte le richieste
+     */
+    public Long countAllRichieste() {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(r) FROM Richiesta_soccorso r", 
+                Long.class
+            );
+            return query.getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+    
+    /**
+     * Conta le richieste per utente
+     */
+    public Long countRichiesteByUserId(Long userId) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                "SELECT COUNT(r) FROM Richiesta_soccorso r WHERE r.usersId = :userId", 
+                Long.class
+            );
+            query.setParameter("userId", userId);
+            return query.getSingleResult();
         } finally {
             em.close();
         }

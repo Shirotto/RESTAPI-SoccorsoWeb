@@ -28,6 +28,10 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
     
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private UserRole role = UserRole.UTENTE;
+    
     public User() {}
    
     public Long getId() { return id; }
@@ -50,4 +54,16 @@ public class User {
     
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+    
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role; }
+    
+    // Metodi helper per controllare i ruoli
+    public boolean isAdmin() {
+        return UserRole.ADMIN.equals(this.role);
+    }
+    
+    public boolean isUtente() {
+        return UserRole.UTENTE.equals(this.role);
+    }
 }

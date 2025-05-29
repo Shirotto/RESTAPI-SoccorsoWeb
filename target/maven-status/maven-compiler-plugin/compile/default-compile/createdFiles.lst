@@ -7,6 +7,8 @@ it\univaq\swa\soccorsoweb\dto\LoginRequest.class
 it\univaq\swa\soccorsoweb\model\StatoRichiesta.class
 it\univaq\swa\soccorsoweb\model\User.class
 it\univaq\swa\soccorsoweb\services\UserService.class
+it\univaq\swa\soccorsoweb\resources\UserResource$UserRoleRequest.class
+it\univaq\swa\soccorsoweb\model\UserRole.class
 it\univaq\swa\soccorsoweb\model\Richiesta_soccorso.class
 it\univaq\swa\soccorsoweb\dto\LoginResponse.class
 it\univaq\swa\soccorsoweb\resources\RichiestaSoccorsoResource.class

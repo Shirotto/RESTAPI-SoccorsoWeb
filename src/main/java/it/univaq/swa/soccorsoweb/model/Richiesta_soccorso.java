@@ -12,7 +12,7 @@ public class Richiesta_soccorso {
     private Long id;
 
     @Column(name = "users_id")
-    private String usersId;
+    private Long usersId;
 
     @Column(name = "richiedente") 
     private String richiedente;
@@ -54,11 +54,11 @@ public class Richiesta_soccorso {
         this.id = id;
     }
 
-    public String getUsersId() {
+    public Long getUsersId() {
         return usersId;
     }
 
-    public void setUsersId(String usersId) {
+    public void setUsersId(Long usersId) {
         this.usersId = usersId;
     }
 
