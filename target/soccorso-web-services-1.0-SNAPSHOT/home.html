@@ -232,6 +232,161 @@
         </div>
     </div>
     
+  <!-- MODALE PER CREAZIONE MISSIONE -->
+<div id="modalCreazioneMissione" class="modal">
+    <div class="modal-content" style="width: 90%; max-width: 1000px;">
+        <div class="modal-header">
+            <h2>➕ Seleziona Richiesta per creare una Missione</h2>
+            <span class="close" id="closeModalMissione">&times;</span>
+        </div>
+
+        <!-- RIGA CON TRE CAMPI AFFIANCATI -->
+        <div class="form-row" style="display: flex; gap: 20px; padding: 20px;">
+            <!-- Campo richieste -->
+            <div class="form-group" style="flex: 1;">
+                <label for="selectRichiesta">Richieste ATTIVE:</label>
+                <select id="selectRichiesta" required>
+                    <option value="">Seleziona una richiesta</option>
+                </select>
+            </div>
+
+            <!-- Campo Autista -->
+            <div class="form-group" style="flex: 1;">
+                <label for="selectAutista">Autista LIBERO:</label>
+                <select id="selectAutista" required>
+                    <option value="">Seleziona un autista</option>
+                </select>
+            </div>
+
+            <!-- Campo Caposquadra -->
+            <div class="form-group" style="flex: 1;">
+                <label for="selectCaposquadra">Caposquadra LIBERO:</label>
+                <select id="selectCaposquadra" required>
+                    <option value="">Seleziona un caposquadra</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Azioni -->
+        <div class="form-actions">
+            <button class="btn-primary" id="creaMissione">Crea Missione</button>
+        </div>
+    </div>
+</div>
+  
+  
+  
+ <!-- MODALE CHIUSURA MISSIONE -->
+<div id="modalChiudiMissione" class="modal">
+  <div class="modal-content" style="width: 80%; max-width: 600px;">
+    <div class="modal-header">
+      <h2>🏁 Chiudi Missione</h2>
+      <span class="close" id="closeModalChiudi">&times;</span>
+    </div>
+
+    <div class="form-group" style="padding:20px">
+      <label for="selectMissioneOpen">Missioni APERTE:</label>
+      <select id="selectMissioneOpen">
+        <option value="">Caricamento…</option>
+      </select>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary" id="btn-conferma-chiusura">Chiudi</button>
+    </div>
+  </div>
+</div>
+ 
+ <!-- MODALE LISTA OPERATORI LIBERI -->
+<div id="modalListaOperatoriLiberi" class="modal" style="display:none;">
+  <div class="modal-content" style="width: 80%; max-width: 600px;">
+    <div class="modal-header">
+      <h2>👥 Lista Operatori Liberi</h2>
+      <span class="close" id="closeModalOperatoriLiberi">&times;</span>
+    </div>
+    <div class="modal-body" style="max-height:400px; overflow-y:auto;">
+      <table id="tabellaOperatoriLiberi" border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Cognome</th>
+            <th>Ruolo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="4">Caricamento...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+ 
+ 
+ <!-- MODALE DETTAGLI OPERATORI -->
+<div id="modalDettagliOperatori" class="modal" style="display:none;">
+  <div class="modal-content" style="width: 90%; max-width: 800px;">
+    <div class="modal-header">
+      <h2>👤 Dettagli Operatori</h2>
+      <span class="close" id="closeModalDettagliOperatori">&times;</span>
+    </div>
+    <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+      <table id="tabellaDettagliOperatori" border="1" cellpadding="5" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Cognome</th>
+            <th>Ruolo</th>
+            <th>Disponibile</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5">Caricamento...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+ 
+ 
+ 
+ <!-- MODALE MISSIONI OPERATORE -->
+<div id="modalMissioniOperatore" class="modal" style="display:none;">
+  <div class="modal-content" style="width: 80%; max-width: 700px;">
+    <div class="modal-header">
+      <h2>📝 Missioni Operatore</h2>
+      <span class="close" id="closeModalMissioniOperatore">&times;</span>
+    </div>
+    <div class="modal-body" style="padding: 20px;">
+      <label for="selectOperatoreMissioni">Seleziona Operatore:</label>
+      <select id="selectOperatoreMissioni" style="width: 100%; margin-bottom: 15px;">
+        <option value="">Caricamento...</option>
+      </select>
+
+      <table id="tabellaMissioniOperatore" border="1" cellpadding="5" cellspacing="0" style="width:100%; border-collapse:collapse; display:none;">
+        <thead>
+          <tr>
+            <th>ID Missione</th>
+            <th>Request ID</th>
+            <th>Status</th>
+            <th>Data Creazione</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Missioni inserite qui -->
+        </tbody>
+      </table>
+      <div id="noMissioniMsg" style="display:none; margin-top: 10px;">Nessuna missione trovata per questo operatore.</div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+    
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="javascript/logica-home.js"></script>
     

@@ -235,3 +235,5 @@ function makeAuthenticatedRequest(url, options = {}) {
   
   return $.ajax(url, options);
 }
+
+

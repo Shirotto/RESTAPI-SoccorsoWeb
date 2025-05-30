@@ -5,11 +5,17 @@ it\univaq\swa\soccorsoweb\utils\JPAUtil.class
 it\univaq\swa\soccorsoweb\dto\RichiestaResponse.class
 it\univaq\swa\soccorsoweb\dto\LoginRequest.class
 it\univaq\swa\soccorsoweb\model\StatoRichiesta.class
+it\univaq\swa\soccorsoweb\resources\MissioneResource.class
+it\univaq\swa\soccorsoweb\services\OperatoreService.class
 it\univaq\swa\soccorsoweb\model\User.class
+it\univaq\swa\soccorsoweb\services\MissioneService.class
 it\univaq\swa\soccorsoweb\services\UserService.class
+it\univaq\swa\soccorsoweb\model\Operatore.class
 it\univaq\swa\soccorsoweb\model\Richiesta_soccorso.class
 it\univaq\swa\soccorsoweb\dto\LoginResponse.class
 it\univaq\swa\soccorsoweb\resources\RichiestaSoccorsoResource.class
 it\univaq\swa\soccorsoweb\resources\UserResource.class
 it\univaq\swa\soccorsoweb\dto\RichiestaRequest.class
+it\univaq\swa\soccorsoweb\resources\OperatoreResource.class
 it\univaq\swa\soccorsoweb\config\JerseyConfig.class
+it\univaq\swa\soccorsoweb\model\Missione.class
