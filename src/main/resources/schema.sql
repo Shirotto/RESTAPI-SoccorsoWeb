@@ -36,5 +36,27 @@ CREATE TABLE IF NOT EXISTS richieste_soccorso (
     FOREIGN KEY (users_id) REFERENCES users(id)
 );
 
+CREATE TABLE operatori (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    cognome VARCHAR(100) NOT NULL,
+    ruolo VARCHAR(50),  -- es: 'Autista', 'Caposquadra'
+    disponibile BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE missioni (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    request_id BIGINT NOT NULL,
+    autista_id INT NOT NULL,
+    caposquadra_id INT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at DATETIME,
+    closed_at DATETIME,
+    FOREIGN KEY (autista_id) REFERENCES operatori(id),
+    FOREIGN KEY (caposquadra_id) REFERENCES operatori(id)
+);
+
+
+
 INSERT INTO users (nome, cognome, telefono, indirizzo, email, password, role) 
 VALUES ('Admin', 'Sistema', '1234567890', 'Sede Centrale', 'admin@soccorsoweb.it', SHA2('admin123', 256), 'ADMIN');
