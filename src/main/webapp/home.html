@@ -232,6 +232,162 @@
         </div>
     </div>
     
+    <!-- MODALE PER LISTA OPERATORI LIBERI -->
+    <div id="modalListaOperatoriLiberi" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>🟢 Lista Operatori Liberi</h2>
+                <span class="close" id="closeModalOperatoriLiberi">&times;</span>
+            </div>
+            <div class="table-container">
+                <table id="tabellaOperatoriLiberi" class="richieste-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Cognome</th>
+                            <th>Ruolo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Le righe verranno inserite via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE PER DETTAGLI OPERATORI -->
+    <div id="modalDettagliOperatori" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>👤 Dettagli Tutti gli Operatori</h2>
+                <span class="close" id="closeModalDettagliOperatori">&times;</span>
+            </div>
+            <div class="table-container">
+                <table id="tabellaDettagliOperatori" class="richieste-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Cognome</th>
+                            <th>Ruolo</th>
+                            <th>Disponibile</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Le righe verranno inserite via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE PER MISSIONI OPERATORE -->
+    <div id="modalMissioniOperatore" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📝 Missioni dell'Operatore</h2>
+                <span class="close" id="closeModalMissioniOperatore">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="selectOperatoreMissioni">Seleziona Operatore:</label>
+                <select id="selectOperatoreMissioni">
+                    <option value="">Caricamento...</option>
+                </select>
+            </div>
+            
+            <div id="noMissioniMsg" class="no-data-message" style="display: none;">
+                <p>📭 Nessuna missione trovata per questo operatore</p>
+            </div>
+            
+            <div class="table-container">
+                <table id="tabellaMissioniOperatore" class="richieste-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID Missione</th>
+                            <th>ID Richiesta</th>
+                            <th>Stato</th>
+                            <th>Data Creazione</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Le righe verranno inserite via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE PER CREAZIONE MISSIONE -->
+    <div id="modalCreazioneMissione" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Creazione Nuova Missione</h2>
+                <span class="close" id="closeModalMissione">&times;</span>
+            </div>
+            
+            <form id="formCreazioneMissione">
+                <div class="form-group">
+                    <label for="selectRichiesta">Seleziona Richiesta Attiva:</label>
+                    <select id="selectRichiesta" required>
+                        <option value="">Caricamento...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="selectAutista">Seleziona Autista:</label>
+                    <select id="selectAutista" required>
+                        <option value="">Seleziona un autista</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="selectCaposquadra">Seleziona Caposquadra:</label>
+                    <select id="selectCaposquadra" required>
+                        <option value="">Seleziona un caposquadra</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" id="annullaMissione">
+                        Annulla
+                    </button>
+                    <button type="button" class="btn-primary" id="creaMissione">
+                        ➕ Crea Missione
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE PER CHIUSURA MISSIONE -->
+    <div id="modalChiudiMissione" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏁 Chiusura Missione</h2>
+                <span class="close" id="closeModalChiudi">&times;</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="selectMissioneOpen">Seleziona Missione Aperta:</label>
+                <select id="selectMissioneOpen">
+                    <option value="">Caricamento...</option>
+                </select>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-secondary" id="closeModalChiudi">
+                    Annulla
+                </button>
+                <button type="button" class="btn-primary" id="btn-conferma-chiusura">
+                    🏁 Chiudi Missione
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="javascript/logica-home.js"></script>
     

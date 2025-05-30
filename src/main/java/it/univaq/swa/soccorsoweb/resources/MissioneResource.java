@@ -49,17 +49,19 @@ public class MissioneResource {
         }
         return Response.ok(missione).build();
     }
-    
-    @GET
-    public Response getMissioniByStatus(@QueryParam("status") String status) {
-    if (status == null || status.isEmpty()) {
-        // Nessun filtro, restituisci tutte le missioni
-        return Response.ok(missioneService.findAllMissioni()).build();
-    } else {
-        // Filtro per stato
-        return Response.ok(missioneService.findMissioniByStatus(status)).build();
+      @GET
+    public Response getMissioni(@QueryParam("status") String status, @QueryParam("operatoreId") Long operatoreId) {
+        if (operatoreId != null) {
+            // Filtro per operatore
+            return Response.ok(missioneService.findMissioniByOperatorId(operatoreId)).build();
+        } else if (status != null && !status.isEmpty()) {
+            // Filtro per stato
+            return Response.ok(missioneService.findMissioniByStatus(status)).build();
+        } else {
+            // Nessun filtro, restituisci tutte le missioni
+            return Response.ok(missioneService.findAllMissioni()).build();
+        }
     }
-}
 
     /*  B.  chiusura missione  */
     @PUT

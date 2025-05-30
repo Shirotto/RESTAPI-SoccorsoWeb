@@ -449,6 +449,396 @@ ${livelloSuccessoDisplay}`;
     });
 }
 
+function visualizzaDettagliMissione(id) {
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: `http://localhost:8080/soccorso-web-services/api/missions/${id}`,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(missione) {
+            let dettagli = `🆔 ID Missione: ${missione.id}
+🆔 ID Richiesta: ${missione.requestId}
+👤 Autista: ${missione.autistaId || 'N/A'}
+👥 Caposquadra: ${missione.caposquadraId || 'N/A'}
+🔄 Stato: ${missione.stato || 'N/A'}
+📅 Data Creazione: ${formatDate(missione.dataCreazione)}`;
+
+            if (missione.dataInizio) {
+                dettagli += `\n🚀 Data Inizio: ${formatDate(missione.dataInizio)}`;
+            }
+            
+            if (missione.dataFine) {
+                dettagli += `\n🏁 Data Fine: ${formatDate(missione.dataFine)}`;
+            }
+
+            if (missione.note) {
+                dettagli += `\n📝 Note: ${missione.note}`;
+            }
+            
+            alert(dettagli);
+        },
+        error: function(xhr) {
+            alert('Errore nel caricamento dei dettagli della missione: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
+// Funzioni per gestire modali operatori
+function openModalOperatoriLiberi() {
+    const modal = $('#modalListaOperatoriLiberi');
+    caricaOperatoriLiberi();
+    modal.show();
+}
+
+function closeModalOperatoriLiberi() {
+    $('#modalListaOperatoriLiberi').hide();
+}
+
+function caricaOperatoriLiberi() {
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: 'http://localhost:8080/soccorso-web-services/api/operatori?disponibile=true',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(operatori) {
+            const tbody = $('#tabellaOperatoriLiberi tbody');
+            tbody.empty();
+            
+            if (operatori.length === 0) {
+                tbody.append('<tr><td colspan="4">Nessun operatore libero al momento</td></tr>');
+                return;
+            }
+            
+            operatori.forEach(function(operatore) {
+                tbody.append(`
+                    <tr>
+                        <td>${operatore.id}</td>
+                        <td>${operatore.nome}</td>
+                        <td>${operatore.cognome}</td>
+                        <td>${operatore.ruolo}</td>
+                    </tr>
+                `);
+            });
+        },
+        error: function(xhr) {
+            alert('Errore nel caricamento operatori liberi: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
+function openModalDettagliOperatori() {
+    const modal = $('#modalDettagliOperatori');
+    caricaTuttiOperatori();
+    modal.show();
+}
+
+function closeModalDettagliOperatori() {
+    $('#modalDettagliOperatori').hide();
+}
+
+function caricaTuttiOperatori() {
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: 'http://localhost:8080/soccorso-web-services/api/operatori',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(operatori) {
+            const tbody = $('#tabellaDettagliOperatori tbody');
+            tbody.empty();
+            
+            if (operatori.length === 0) {
+                tbody.append('<tr><td colspan="5">Nessun operatore trovato</td></tr>');
+                return;
+            }
+            
+            operatori.forEach(function(operatore) {
+                const disponibile = operatore.disponibile ? '🟢 Sì' : '🔴 No';
+                tbody.append(`
+                    <tr>
+                        <td>${operatore.id}</td>
+                        <td>${operatore.nome}</td>
+                        <td>${operatore.cognome}</td>
+                        <td>${operatore.ruolo}</td>
+                        <td>${disponibile}</td>
+                    </tr>
+                `);
+            });
+        },
+        error: function(xhr) {
+            alert('Errore nel caricamento operatori: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
+function openModalMissioniOperatore() {
+    const modal = $('#modalMissioniOperatore');
+    caricaOperatoriPerMissioni();
+    modal.show();
+}
+
+function closeModalMissioniOperatore() {
+    $('#modalMissioniOperatore').hide();
+}
+
+function caricaOperatoriPerMissioni() {
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: 'http://localhost:8080/soccorso-web-services/api/operatori',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(operatori) {
+            const select = $('#selectOperatoreMissioni');
+            select.empty().append('<option value="">Seleziona un operatore</option>');
+            
+            operatori.forEach(function(operatore) {
+                select.append(`<option value="${operatore.id}">${operatore.nome} ${operatore.cognome} (${operatore.ruolo})</option>`);
+            });
+        },
+        error: function(xhr) {
+            alert('Errore nel caricamento operatori: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
+function caricaMissioniOperatore(operatoreId) {
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: `http://localhost:8080/soccorso-web-services/api/missions?operatoreId=${operatoreId}`,
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(missioni) {
+            const tbody = $('#tabellaMissioniOperatore tbody');
+            const noMissioniMsg = $('#noMissioniMsg');
+            const tabella = $('#tabellaMissioniOperatore');
+            
+            tbody.empty();
+            
+            if (missioni.length === 0) {
+                noMissioniMsg.show();
+                tabella.hide();
+                return;
+            }
+            
+            noMissioniMsg.hide();
+            tabella.show();
+            
+            missioni.forEach(function(missione) {
+                tbody.append(`
+                    <tr>
+                        <td>${missione.id}</td>
+                        <td>${missione.requestId}</td>
+                        <td>${missione.stato || 'N/A'}</td>
+                        <td>${formatDate(missione.dataCreazione)}</td>
+                    </tr>
+                `);
+            });
+        },
+        error: function(xhr) {
+            alert('Errore nel caricamento missioni: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
+function openModalCreazioneMissione() {
+    const modal = $('#modalCreazioneMissione');
+    caricaRichiesteAttive();
+    caricaOperatoriLiberiPerMissione();
+    modal.show();
+}
+
+function closeModalCreazioneMissione() {
+    $('#modalCreazioneMissione').hide();
+}
+
+function caricaRichiesteAttive() {
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: 'http://localhost:8080/soccorso-web-services/api/richieste?stato=ATTIVA',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(richieste) {
+            const select = $('#selectRichiesta');
+            select.empty().append('<option value="">Seleziona una richiesta</option>');
+            
+            richieste.forEach(function(richiesta) {
+                select.append(`<option value="${richiesta.id}">${richiesta.id} - ${richiesta.descrizione.substring(0, 50)}...</option>`);
+            });
+        },
+        error: function(xhr) {
+            console.error('Errore nel caricamento richieste attive:', xhr);
+            $('#selectRichiesta').html('<option value="">Errore nel caricamento</option>');
+        }
+    });
+}
+
+function caricaOperatoriLiberiPerMissione() {
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: 'http://localhost:8080/soccorso-web-services/api/operatori?disponibile=true',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(operatori) {
+            const selectAutista = $('#selectAutista');
+            const selectCaposquadra = $('#selectCaposquadra');
+            
+            selectAutista.empty().append('<option value="">Seleziona un autista</option>');
+            selectCaposquadra.empty().append('<option value="">Seleziona un caposquadra</option>');
+            
+            operatori.forEach(function(operatore) {
+                const option = `<option value="${operatore.id}">${operatore.nome} ${operatore.cognome}</option>`;
+                if (operatore.ruolo === 'AUTISTA') {
+                    selectAutista.append(option);
+                } else if (operatore.ruolo === 'CAPOSQUADRA') {
+                    selectCaposquadra.append(option);
+                }
+            });
+        },
+        error: function(xhr) {
+            console.error('Errore nel caricamento operatori liberi:', xhr);
+        }
+    });
+}
+
+function creaMissione() {
+    const richiestaId = $('#selectRichiesta').val();
+    const autistaId = $('#selectAutista').val();
+    const caposquadraId = $('#selectCaposquadra').val();
+    
+    if (!richiestaId || !autistaId || !caposquadraId) {
+        alert('Tutti i campi sono obbligatori');
+        return;
+    }
+    
+    const token = sessionStorage.getItem('authToken');
+    const missione = {
+        requestId: parseInt(richiestaId),
+        autistaId: parseInt(autistaId),
+        caposquadraId: parseInt(caposquadraId),
+        stato: 'ATTIVA'
+    };
+    
+    $.ajax({
+        url: 'http://localhost:8080/soccorso-web-services/api/missions',
+        type: 'POST',
+        headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(missione),
+        success: function(response) {
+            alert('Missione creata con successo!');
+            closeModalCreazioneMissione();
+            // Ricarica la lista delle richieste se è aperta
+            if ($('#modalListaRichieste').is(':visible')) {
+                if (currentFilters.livelloSuccesso === 'sotto5') {
+                    caricaRichiesteNonPositive();
+                } else {
+                    caricaRichieste();
+                }
+            }
+        },
+        error: function(xhr) {
+            alert('Errore nella creazione missione: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
+function openModalChiudiMissione() {
+    const modal = $('#modalChiudiMissione');
+    caricaMissioniAperte();
+    modal.show();
+}
+
+function closeModalChiudiMissione() {
+    $('#modalChiudiMissione').hide();
+}
+
+function caricaMissioniAperte() {
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: 'http://localhost:8080/soccorso-web-services/api/missions?status=ATTIVA',
+        type: 'GET',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(missioni) {
+            const select = $('#selectMissioneOpen');
+            select.empty().append('<option value="">Seleziona una missione</option>');
+            
+            missioni.forEach(function(missione) {
+                select.append(`<option value="${missione.id}">Missione ${missione.id} - Richiesta ${missione.requestId}</option>`);
+            });
+        },
+        error: function(xhr) {
+            console.error('Errore nel caricamento missioni aperte:', xhr);
+            $('#selectMissioneOpen').html('<option value="">Errore nel caricamento</option>');
+        }
+    });
+}
+
+function chiudiMissione() {
+    const missioneId = $('#selectMissioneOpen').val();
+    
+    if (!missioneId) {
+        alert('Seleziona una missione da chiudere');
+        return;
+    }
+    
+    const token = sessionStorage.getItem('authToken');
+    
+    $.ajax({
+        url: `http://localhost:8080/soccorso-web-services/api/missions/${missioneId}/close`,
+        type: 'PUT',
+        headers: {
+            'Authorization': 'Bearer ' + token
+        },
+        success: function(response) {
+            alert('Missione chiusa con successo!');
+            closeModalChiudiMissione();
+            // Ricarica la lista delle richieste se è aperta
+            if ($('#modalListaRichieste').is(':visible')) {
+                if (currentFilters.livelloSuccesso === 'sotto5') {
+                    caricaRichiesteNonPositive();
+                } else {
+                    caricaRichieste();
+                }
+            }
+        },
+        error: function(xhr) {
+            alert('Errore nella chiusura missione: ' + 
+                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+        }
+    });
+}
+
 function modificaStatoRichiesta(id) {
     const nuovoStato = prompt(`Seleziona nuovo stato per la richiesta ${id}:
 
@@ -773,14 +1163,101 @@ $(document).ready(function() {
         openModalRichiesteNonPositive();
     });
 
+    // Gestori per altri pulsanti delle richieste
+    $('#btn-request-details').on('click', function(e) {
+        e.preventDefault();
+        const id = prompt('Inserisci l\'ID della richiesta da visualizzare:');
+        if (id && !isNaN(id)) {
+            visualizzaDettagliRichiesta(parseInt(id));
+        }
+    });
+
+    $('#btn-cancel-request').on('click', function(e) {
+        e.preventDefault();
+        const id = prompt('Inserisci l\'ID della richiesta da eliminare (solo per Admin):');
+        if (id && !isNaN(id)) {
+            eliminaRichiesta(parseInt(id));
+        }
+    });
+
+    // Gestori per pulsanti operatori
+    $('#btn-free-operators').on('click', function(e) {
+        e.preventDefault();
+        openModalOperatoriLiberi();
+    });
+
+    $('#btn-all-operators').on('click', function(e) {
+        e.preventDefault();
+        openModalDettagliOperatori();
+    });
+
+    $('#btn-operator-missions').on('click', function(e) {
+        e.preventDefault();
+        openModalMissioniOperatore();
+    });
+
+    // Gestori per pulsanti missioni  
+    $('#btn-create-mission').on('click', function(e) {
+        e.preventDefault();
+        openModalCreazioneMissione();
+    });
+
+    $('#btn-close-mission').on('click', function(e) {
+        e.preventDefault();
+        openModalChiudiMissione();
+    });
+
+    // Gestori per chiusura modali operatori
+    $('#closeModalOperatoriLiberi').on('click', function(e) {
+        e.preventDefault();
+        closeModalOperatoriLiberi();
+    });
+
+    $('#closeModalDettagliOperatori').on('click', function(e) {
+        e.preventDefault();
+        closeModalDettagliOperatori();
+    });
+
+    $('#closeModalMissioniOperatore').on('click', function(e) {
+        e.preventDefault();
+        closeModalMissioniOperatore();
+    });
+
+    // Gestori per modali missioni
+    $('#closeModalMissione, #annullaMissione').on('click', function(e) {
+        e.preventDefault();
+        closeModalCreazioneMissione();
+    });
+
+    $('#closeModalChiudi').on('click', function(e) {
+        e.preventDefault();
+        closeModalChiudiMissione();
+    });
+
+    $('#creaMissione').on('click', function(e) {
+        e.preventDefault();
+        creaMissione();
+    });
+
+    $('#btn-conferma-chiusura').on('click', function(e) {
+        e.preventDefault();
+        chiudiMissione();
+    });
+
+    // Gestore per cambio operatore nelle missioni
+    $('#selectOperatoreMissioni').on('change', function() {
+        const operatoreId = $(this).val();
+        if (operatoreId) {
+            caricaMissioniOperatore(operatoreId);
+        } else {
+            $('#tabellaMissioniOperatore').hide();
+            $('#noMissioniMsg').hide();
+        }
+    });
+
     $('#closeModal, #cancellaRichiesta').on('click', function(e) {
         e.preventDefault();
         closeModalRichiesta();
-    });
-
-    $('#closeModalLista').on('click', function(e) {
-        e.preventDefault();
-        closeModalListaRichieste();
     });
 
     $('#applicaFiltri').on('click', function(e) {
@@ -1198,4 +1675,4 @@ $('#closeModalDettagliOperatori').on('click', function() {
 
 
 
-  
+
