@@ -459,19 +459,17 @@ function visualizzaDettagliMissione(id) {
             'Authorization': 'Bearer ' + token
         },
         success: function(missione) {
+            console.log(missione); // 👈 stampa l'oggetto missione
             let dettagli = `🆔 ID Missione: ${missione.id}
 🆔 ID Richiesta: ${missione.requestId}
 👤 Autista: ${missione.autistaId || 'N/A'}
 👥 Caposquadra: ${missione.caposquadraId || 'N/A'}
-🔄 Stato: ${missione.stato || 'N/A'}
-📅 Data Creazione: ${formatDate(missione.dataCreazione)}`;
-
-            if (missione.dataInizio) {
-                dettagli += `\n🚀 Data Inizio: ${formatDate(missione.dataInizio)}`;
-            }
+🔄 Stato: ${missione.status || 'N/A'}
+📅 Data Creazione: ${formatDate(missione.createdAt)}`;
+           
             
-            if (missione.dataFine) {
-                dettagli += `\n🏁 Data Fine: ${formatDate(missione.dataFine)}`;
+            if (missione.closedAt) {
+                dettagli += `\n🏁 Data Fine: ${formatDate(missione.closedAt)}`;
             }
 
             if (missione.note) {
@@ -584,7 +582,7 @@ function caricaTuttiOperatori() {
 
 function openModalMissioniOperatore() {
     const modal = $('#modalMissioniOperatore');
-    caricaOperatoriPerMissioni();
+    missioniDellOperatore();
     modal.show();
 }
 
@@ -592,7 +590,7 @@ function closeModalMissioniOperatore() {
     $('#modalMissioniOperatore').hide();
 }
 
-function caricaOperatoriPerMissioni() {
+function missioniDellOperatore() {
     const token = sessionStorage.getItem('authToken');
     
     $.ajax({
@@ -616,6 +614,8 @@ function caricaOperatoriPerMissioni() {
     });
 }
 
+ 
+
 function caricaMissioniOperatore(operatoreId) {
     const token = sessionStorage.getItem('authToken');
     
@@ -626,6 +626,7 @@ function caricaMissioniOperatore(operatoreId) {
             'Authorization': 'Bearer ' + token
         },
         success: function(missioni) {
+            console.log(missioni);
             const tbody = $('#tabellaMissioniOperatore tbody');
             const noMissioniMsg = $('#noMissioniMsg');
             const tabella = $('#tabellaMissioniOperatore');
@@ -646,8 +647,9 @@ function caricaMissioniOperatore(operatoreId) {
                     <tr>
                         <td>${missione.id}</td>
                         <td>${missione.requestId}</td>
-                        <td>${missione.stato || 'N/A'}</td>
-                        <td>${formatDate(missione.dataCreazione)}</td>
+                        <td>${missione.status || 'N/A'}</td>
+                        <td>${formatDate(arrayToDateString(missione.createdAt))}</td>
+                        <td>${formatDate(arrayToDateString(missione.closedAt))}</td>
                     </tr>
                 `);
             });
@@ -662,7 +664,7 @@ function caricaMissioniOperatore(operatoreId) {
 function openModalCreazioneMissione() {
     const modal = $('#modalCreazioneMissione');
     caricaRichiesteAttive();
-    caricaOperatoriLiberiPerMissione();
+    caricaOperatoriLiberiSeparati();
     modal.show();
 }
 
@@ -672,7 +674,10 @@ function closeModalCreazioneMissione() {
 
 function caricaRichiesteAttive() {
     const token = sessionStorage.getItem('authToken');
+    console.log('Token usato:', token);
+   
     
+  
     $.ajax({
         url: 'http://localhost:8080/soccorso-web-services/api/richieste?stato=ATTIVA',
         type: 'GET',
@@ -683,7 +688,7 @@ function caricaRichiesteAttive() {
             const select = $('#selectRichiesta');
             select.empty().append('<option value="">Seleziona una richiesta</option>');
             
-            richieste.forEach(function(richiesta) {
+            richieste.content.forEach(function(richiesta) {
                 select.append(`<option value="${richiesta.id}">${richiesta.id} - ${richiesta.descrizione.substring(0, 50)}...</option>`);
             });
         },
@@ -740,8 +745,10 @@ function creaMissione() {
         requestId: parseInt(richiestaId),
         autistaId: parseInt(autistaId),
         caposquadraId: parseInt(caposquadraId),
-        stato: 'ATTIVA'
+        status: 'ATTIVA'
     };
+    
+   
     
     $.ajax({
         url: 'http://localhost:8080/soccorso-web-services/api/missions',
@@ -784,7 +791,7 @@ function caricaMissioniAperte() {
     const token = sessionStorage.getItem('authToken');
     
     $.ajax({
-        url: 'http://localhost:8080/soccorso-web-services/api/missions?status=ATTIVA',
+        url: 'http://localhost:8080/soccorso-web-services/api/missions?status=open',
         type: 'GET',
         headers: {
             'Authorization': 'Bearer ' + token
@@ -1088,28 +1095,30 @@ function inviaRichiestaSoccorso() {
 
 function formatDate(dateInput) {
     if (!dateInput) return 'N/A';
-    
+
     try {
         let date;
-        
+
         if (Array.isArray(dateInput) && dateInput.length >= 6) {
             const [year, month, day, hour, minute, second] = dateInput;
-            date = new Date(year, month - 1, day, hour, minute, second || 0);
+            // Creazione della data in UTC per evitare problemi di fuso orario
+            date = new Date(Date.UTC(year, month - 1, day, hour, minute, second || 0));
         }
         else if (typeof dateInput === 'string') {
             const cleanDateString = dateInput.trim();
-            
+
             const mysqlMatch = cleanDateString.match(/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/);
             if (mysqlMatch) {
                 const [, year, month, day, hour, minute, second] = mysqlMatch;
-                date = new Date(
-                    parseInt(year), 
-                    parseInt(month) - 1, 
-                    parseInt(day), 
-                    parseInt(hour), 
-                    parseInt(minute), 
+                // Anche qui creiamo la data in UTC se possibile
+                date = new Date(Date.UTC(
+                    parseInt(year),
+                    parseInt(month) - 1,
+                    parseInt(day),
+                    parseInt(hour),
+                    parseInt(minute),
                     parseInt(second)
-                );
+                ));
             } else {
                 date = new Date(cleanDateString);
             }
@@ -1120,25 +1129,34 @@ function formatDate(dateInput) {
         else {
             return 'N/A';
         }
-        
+
         if (isNaN(date.getTime())) {
             return 'N/A';
         }
-        
+
         const formatted = date.toLocaleString('it-IT', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            timeZone: 'UTC'  // Visualizza in orario UTC per evitare il +2
         });
-        
+
         return formatted;
-        
+
     } catch (error) {
         return 'N/A';
     }
 }
+
+//Questa la uso per cambiare da array a stinge in carica missioni operatore
+function arrayToDateString(arr) {
+  if (!Array.isArray(arr) || arr.length < 6) return null;
+  const [year, month, day, hour, min, sec] = arr;
+  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')} ${String(hour).padStart(2,'0')}:${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
 
 $(document).ready(function() {
     checkAuthentication();
