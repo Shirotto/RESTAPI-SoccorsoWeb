@@ -186,16 +186,47 @@ function chiudiMissione() {
         return;
     }
     
+    // Richiedi il livello di successo
+    const livelloSuccesso = prompt(`La missione sarà chiusa. Inserisci il livello di successo:
+
+📊 SCALA DA 1 A 10:
+1️⃣ = Fallimento completo
+2️⃣ = Fallimento grave
+3️⃣ = Fallimento moderato
+4️⃣ = Risultato insufficiente
+5️⃣ = Risultato medio/parziale
+6️⃣ = Risultato discreto
+7️⃣ = Buon risultato
+8️⃣ = Ottimo risultato
+9️⃣ = Eccellente risultato
+🔟 = Successo totale
+
+Inserisci un numero da 1 a 10:`);
+
+    if (!livelloSuccesso) {
+        alert('Il livello di successo è obbligatorio per chiudere una missione');
+        return;
+    }
+
+    const livelloNumerico = parseInt(livelloSuccesso.trim());
+    
+    if (isNaN(livelloNumerico) || livelloNumerico < 1 || livelloNumerico > 10) {
+        alert('❌ Il livello di successo deve essere un numero da 1 a 10\n\n1 = Fallimento completo\n10 = Successo totale');
+        return;
+    }
+    
     const token = Auth.getAuthToken();
     
+    // Aggiunto il parametro livelloSuccesso all'URL della richiesta
     $.ajax({
-        url: `http://localhost:8080/soccorso-web-services/api/missions/${missioneId}/close`,
+        url: `http://localhost:8080/soccorso-web-services/api/missions/${missioneId}/close?livelloSuccesso=${livelloNumerico}`,
         type: 'PUT',
         headers: {
             'Authorization': 'Bearer ' + token
         },
         success: function(response) {
-            alert('Missione chiusa con successo!');
+            const descrizioneSuccesso = getLivelloSuccessoDescrizione(livelloNumerico);
+            alert(`✅ Missione chiusa con successo!\n\nLivello di Successo: ${livelloNumerico}/10\nDescrizione: ${descrizioneSuccesso}`);
             UI.closeModalChiudiMissione();
             // Ricarica la lista delle richieste se è aperta
             if ($('#modalListaRichieste').is(':visible')) {
@@ -207,8 +238,17 @@ function chiudiMissione() {
             }
         },
         error: function(xhr) {
-            alert('Errore nella chiusura missione: ' + 
-                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+            let errorMsg = 'Errore sconosciuto';
+            
+            if (xhr.responseJSON?.error) {
+                errorMsg = xhr.responseJSON.error;
+            } else if (xhr.responseJSON?.message) {
+                errorMsg = xhr.responseJSON.message;
+            } else if (xhr.status === 400) {
+                errorMsg = 'Dati non validi. Il livello di successo è obbligatorio per chiudere una missione.';
+            }
+            
+            alert('❌ Errore nella chiusura missione: ' + errorMsg);
         }
     });
 }
