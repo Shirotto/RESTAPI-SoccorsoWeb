@@ -10,8 +10,12 @@ import jakarta.persistence.TypedQuery;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RichiestaSoccorsoService {
+    private static final Logger logger = Logger.getLogger(RichiestaSoccorsoService.class.getName());
+    private final EmailService emailService = new EmailService();
     
     /**
      * Salva una nuova richiesta di soccorso
@@ -29,6 +33,9 @@ public class RichiestaSoccorsoService {
             em.persist(richiesta);
             em.getTransaction().commit();
             
+            // Invia email di convalida
+            sendValidationEmail(richiesta);
+            
             return richiesta;
         } catch (Exception e) {
             if (em.getTransaction().isActive()) {
@@ -40,6 +47,65 @@ public class RichiestaSoccorsoService {
         }
     }
     
+    /**
+     * Invia email con link di convalida
+     */
+    private void sendValidationEmail(Richiesta_soccorso richiesta) {
+        // Verifica che ci sia un indirizzo email per inviare il link di convalida
+        if (richiesta.getEmailContattoRichiesta() != null && !richiesta.getEmailContattoRichiesta().trim().isEmpty()) {
+            try {
+                boolean sent = emailService.sendValidationEmail(
+                    richiesta.getEmailContattoRichiesta(),
+                    richiesta.getRichiedente(), 
+                    richiesta.getId(), 
+                    richiesta.getValidationToken()
+                );
+                
+                if (sent) {
+                    logger.info("Email di convalida inviata per la richiesta ID: " + richiesta.getId());
+                } else {
+                    logger.warning("Invio email di convalida fallito per la richiesta ID: " + richiesta.getId());
+                }
+            } catch (Exception e) {
+                logger.log(Level.SEVERE, "Errore nell'invio dell'email di convalida", e);
+            }
+        } else {
+            logger.warning("Nessun indirizzo email disponibile per l'invio del link di convalida. Richiesta ID: " + richiesta.getId());
+        }
+    }
+    
+    /**
+     * Invia nuovamente l'email di convalida
+     */
+    public boolean resendValidationEmail(Long id) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            Richiesta_soccorso richiesta = em.find(Richiesta_soccorso.class, id);
+            if (richiesta == null || richiesta.getStatoRichiesta() != StatoRichiesta.PENDING_VALIDATION) {
+                return false;
+            }
+            
+            // Se il token non esiste più, ne creiamo uno nuovo
+            if (richiesta.getValidationToken() == null || richiesta.getValidationToken().trim().isEmpty()) {
+                em.getTransaction().begin();
+                richiesta.setValidationToken(UUID.randomUUID().toString());
+                em.merge(richiesta);
+                em.getTransaction().commit();
+            }
+            
+            // Invia l'email
+            sendValidationEmail(richiesta);
+            return true;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Errore nel reinvio dell'email di convalida", e);
+            return false;
+        } finally {
+            em.close();
+        }
+    }
+    
+    // Resto dei metodi rimane invariato...
+
     /**
      * Trova una richiesta per ID
      */
@@ -317,6 +383,47 @@ public class RichiestaSoccorsoService {
             );
             query.setParameter("userId", userId);
             return query.getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+    
+    /**
+     * Convalida una richiesta (cambia stato da PENDING_VALIDATION ad ATTIVA)
+     * Verifica che il token corrisponda a quello della richiesta
+     */
+    public Richiesta_soccorso convalidaRichiesta(Long id, String validationToken) {
+        EntityManager em = JPAUtil.getEntityManager();
+        try {
+            em.getTransaction().begin();
+            
+            Richiesta_soccorso richiesta = em.find(Richiesta_soccorso.class, id);
+            if (richiesta == null || richiesta.getStatoRichiesta() != StatoRichiesta.PENDING_VALIDATION) {
+                return null;
+            }
+            
+            // Verifica che il token corrisponda a quello della richiesta
+            if (validationToken == null || !validationToken.equals(richiesta.getValidationToken())) {
+                throw new SecurityException("Token di convalida non valido");
+            }
+            
+            richiesta.setStatoRichiesta(StatoRichiesta.ATTIVA);
+            // Rimuovi il token per sicurezza dopo la convalida
+            richiesta.setValidationToken(null);
+            
+            em.merge(richiesta);
+            em.getTransaction().commit();
+            return richiesta;
+        } catch (SecurityException se) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw se;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw new RuntimeException("Errore nella convalida della richiesta", e);
         } finally {
             em.close();
         }

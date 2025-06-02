@@ -60,3 +60,7 @@ CREATE TABLE missioni (
 
 INSERT INTO users (nome, cognome, telefono, indirizzo, email, password, role) 
 VALUES ('Admin', 'Sistema', '1234567890', 'Sede Centrale', 'admin@soccorsoweb.it', SHA2('admin123', 256), 'ADMIN');
+INSERT INTO operatori (nome, cognome, ruolo, disponibile) VALUES
+('Marco', 'Rossi', 'Autista', TRUE),
+('Luca', 'Bianchi', 'Caposquadra', TRUE),
+('Giulia', 'Verdi', 'Caposquadra', TRUE);

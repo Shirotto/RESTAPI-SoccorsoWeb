@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convalida Richiesta - Soccorso Web</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 40px;
+        }
+        .convalida-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            max-height: 80px;
+            margin-bottom: 15px;
+        }
+        .result {
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #cce5ff;
+            border: 1px solid #b8daff;
+            color: #004085;
+        }
+        .loader {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="convalida-container">
+            <div class="header">
+                <h2>Convalida Richiesta di Soccorso</h2>
+            </div>
+            
+            <div id="loader" class="loader">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Convalidando...</span>
+                </div>
+                <p class="mt-2">Stiamo convalidando la tua richiesta...</p>
+            </div>
+            
+            <div id="convalidaResult" class="result"></div>
+            
+            <div id="manualConvalidaSection" class="mt-4" style="display: none;">
+                <hr>
+                <h5 class="text-center">Convalida Manuale</h5>
+                <p>Se la convalida automatica non funziona, puoi inserire manualmente i dati:</p>
+                
+                <form id="formConvalidaRichiesta">
+                    <div class="form-group">
+                        <label for="richiestaId">ID Richiesta*</label>
+                        <input type="text" id="richiestaId" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="validationToken">Token di Convalida*</label>
+                        <input type="text" id="validationToken" class="form-control" required>
+                    </div>
+                    
+                    <button type="button" id="confermaConvalida" class="btn btn-primary btn-block">
+                        ✅ Convalida Richiesta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showConvalidaResult(message, type) {
+            const $result = $('#convalidaResult');
+            
+            // Rimuovi classi precedenti
+            $result.removeClass('success error warning info');
+            
+            // Aggiungi la classe appropriata
+            $result.addClass(type);
+            
+            // Imposta il messaggio con icona appropriata
+            let icon = '';
+            switch (type) {
+                case 'success':
+                    icon = '✅ ';
+                    break;
+                case 'error':
+                    icon = '❌ ';
+                    break;
+                case 'warning':
+                    icon = '⚠️ ';
+                    break;
+                case 'info':
+                    icon = 'ℹ️ ';
+                    break;
+            }
+            
+            $result.html(icon + message).fadeIn();
+        }
+        
+        function convalidaRichiesta() {
+            const richiestaId = $('#richiestaId').val().trim();
+            const validationToken = $('#validationToken').val().trim();
+            
+            // Validazione input
+            if (!richiestaId || !validationToken) {
+                showConvalidaResult('Errore: Tutti i campi sono obbligatori', 'error');
+                return;
+            }
+            
+            if (isNaN(richiestaId) || parseInt(richiestaId) <= 0) {
+                showConvalidaResult('Errore: ID richiesta deve essere un numero valido', 'error');
+                return;
+            }
+            
+            // Disabilita il pulsante durante la richiesta
+            $('#confermaConvalida').prop('disabled', true).text('⏳ Convalidando...');
+            
+            // Chiamata API di convalida
+            $.ajax({
+                url: `http://localhost:8080/soccorso-web-services/api/richieste/${richiestaId}/convalida?token=${encodeURIComponent(validationToken)}`,
+                method: 'POST',
+                contentType: 'application/json',
+                success: function(response) {
+                    let message = 'Richiesta convalidata con successo!';
+                    
+                    if (response.message) {
+                        message = response.message;
+                    }
+                    
+                    if (response.data && response.data.statoRichiesta) {
+                        message += ` Nuovo stato: ${response.data.statoRichiesta}`;
+                    }
+                    
+                    showConvalidaResult(message, 'success');
+                    
+                    // Reset del form dopo successo
+                    setTimeout(() => {
+                        $('#formConvalidaRichiesta')[0].reset();
+                    }, 3000);
+                },
+                error: function(xhr) {
+                    let errorMessage = 'Errore nella convalida della richiesta';
+                    
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        if (errorResponse.message) {
+                            errorMessage = errorResponse.message;
+                        } else if (errorResponse.error) {
+                            errorMessage = errorResponse.error;
+                        }
+                    } catch (e) {
+                        // Se non è JSON, usa il messaggio di default
+                        if (xhr.status === 404) {
+                            errorMessage = 'Richiesta non trovata';
+                        } else if (xhr.status === 400) {
+                            errorMessage = 'Token di validazione non valido o richiesta già convalidata';
+                        } else if (xhr.status === 500) {
+                            errorMessage = 'Errore interno del server';
+                        }
+                    }
+                    
+                    showConvalidaResult(errorMessage, 'error');
+                },
+                complete: function() {
+                    // Riabilita il pulsante
+                    $('#confermaConvalida').prop('disabled', false).text('✅ Convalida Richiesta');
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            // Estrai i parametri dall'URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            const token = urlParams.get('token');
+            
+            // Funzione per mostrare il form di convalida manuale
+            function showManualForm() {
+                $('#loader').hide();
+                $('#manualConvalidaSection').fadeIn();
+                
+                // Precompila i campi se disponibili
+                if (id) $('#richiestaId').val(id);
+                if (token) $('#validationToken').val(token);
+            }
+            
+            // Se ci sono sia ID che token, procedi con la convalida automatica
+            if (id && token) {
+                // Prepara i dati per la convalida
+                const url = `http://localhost:8080/soccorso-web-services/api/richieste/${id}/convalida?token=${encodeURIComponent(token)}`;
+                
+                // Effettua la richiesta API
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    success: function(response) {
+                        let message = 'Richiesta convalidata con successo! La tua richiesta è ora attiva e verrà gestita dal nostro personale.';
+                        
+                        if (response.message) {
+                            message = response.message;
+                        }
+                        
+                        $('#loader').hide();
+                        showConvalidaResult(message, 'success');
+                    },
+                    error: function(xhr) {
+                        let errorMessage = 'Errore nella convalida della richiesta';
+                        
+                        try {
+                            const errorResponse = JSON.parse(xhr.responseText);
+                            if (errorResponse.message) {
+                                errorMessage = errorResponse.message;
+                            } else if (errorResponse.error) {
+                                errorMessage = errorResponse.error;
+                            }
+                        } catch (e) {
+                            // Se non è JSON, usa il messaggio di default
+                            if (xhr.status === 404) {
+                                errorMessage = 'Richiesta non trovata';
+                            } else if (xhr.status === 400) {
+                                errorMessage = 'Token di validazione non valido o richiesta già convalidata';
+                            } else if (xhr.status === 500) {
+                                errorMessage = 'Errore interno del server';
+                            }
+                        }
+                        
+                        $('#loader').hide();
+                        showConvalidaResult(errorMessage, 'error');
+                        
+                        // Mostra il form manuale in caso di errore
+                        setTimeout(showManualForm, 1000);
+                    }
+                });
+            } else {
+                // Se mancano parametri, mostra direttamente il form manuale
+                showConvalidaResult('Parametri mancanti nell\'URL. Utilizza il form sotto per convalidare manualmente la richiesta.', 'info');
+                showManualForm();
+            }
+            
+            // Event listener per il pulsante di convalida manuale
+            $('#confermaConvalida').click(function() {
+                convalidaRichiesta();
+            });
+        });
+    </script>
+</body>
+</html>

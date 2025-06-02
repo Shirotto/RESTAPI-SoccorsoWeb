@@ -8,6 +8,7 @@ it\univaq\swa\soccorsoweb\dto\LoginResponse.class
 it\univaq\swa\soccorsoweb\resources\UserResource.class
 it\univaq\swa\soccorsoweb\dto\RichiestaRequest.class
 it\univaq\swa\soccorsoweb\model\Missione.class
+it\univaq\swa\soccorsoweb\services\EmailService.class
 it\univaq\swa\soccorsoweb\services\RichiestaSoccorsoService.class
 it\univaq\swa\soccorsoweb\security\JwtUtil.class
 it\univaq\swa\soccorsoweb\dto\RichiestaResponse.class

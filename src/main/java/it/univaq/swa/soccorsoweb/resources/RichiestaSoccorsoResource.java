@@ -405,7 +405,6 @@ public class RichiestaSoccorsoResource {
                     }
                 }
 
-                // CORREZIONE: Usa il metodo corretto con 3 parametri
                 Richiesta_soccorso richiesta;
                 if (statoEnum == StatoRichiesta.CHIUSA && livelloSuccesso != null) {
                     richiesta = richiestaService.updateStatoRichiesta(id, statoEnum, livelloSuccesso);
@@ -475,4 +474,99 @@ public class RichiestaSoccorsoResource {
                 .build();
         }
     }
+    
+    /**
+     * Convalida una richiesta di soccorso tramite token
+     * PERMESSO: Pubblico (accessibile tramite link email)
+     */
+    @POST
+    @Path("/{id}/convalida")
+    public Response convalidaRichiesta(@PathParam("id") Long id, 
+                                     @QueryParam("token") String validationToken) {
+        try {
+            // Validazione parametri
+            if (validationToken == null || validationToken.trim().isEmpty()) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new RichiestaResponse("Token di convalida mancante"))
+                    .build();
+            }
+
+            try {
+                // La verifica del token e della richiesta avviene nel service
+                Richiesta_soccorso richiestaConvalidata = richiestaService.convalidaRichiesta(id, validationToken);
+                
+                if (richiestaConvalidata == null) {
+                    return Response.status(Response.Status.NOT_FOUND)
+                        .entity(new RichiestaResponse("Richiesta non trovata o non in stato di attesa validazione"))
+                        .build();
+                }
+
+                return Response.ok(new RichiestaResponse("Richiesta convalidata con successo", richiestaConvalidata))
+                    .build();
+            } catch (SecurityException se) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new RichiestaResponse(se.getMessage()))
+                    .build();
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new RichiestaResponse("Errore nel convalidare la richiesta: " + e.getMessage()))
+                .build();
+        }
+    }
+    
+    // Aggiungi questo metodo alla classe RichiestaSoccorsoResource
+
+/**
+ * Richiedi reinvio email di convalida
+ * PERMESSO: Pubblico
+ */
+@POST
+@Path("/{id}/resend-validation")
+public Response resendValidationEmail(@PathParam("id") Long id, 
+                                   @QueryParam("email") String email) {
+    try {
+        // Trova la richiesta per ID
+        Richiesta_soccorso richiesta = richiestaService.findRichiestaById(id);
+        if (richiesta == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                .entity(new RichiestaResponse("Richiesta non trovata"))
+                .build();
+        }
+
+        // Verifica che la richiesta sia in stato PENDING_VALIDATION
+        if (richiesta.getStatoRichiesta() != StatoRichiesta.PENDING_VALIDATION) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity(new RichiestaResponse("La richiesta è già stata convalidata o è in un altro stato"))
+                .build();
+        }
+
+        // Verifica che l'email fornita corrisponda a quella della richiesta
+        if (email != null && !email.trim().isEmpty() &&
+            !email.equals(richiesta.getEmailContattoRichiesta())) {
+            return Response.status(Response.Status.FORBIDDEN)
+                .entity(new RichiestaResponse("L'indirizzo email fornito non corrisponde a quello della richiesta"))
+                .build();
+        }
+
+        // Reinvia l'email
+        boolean sent = richiestaService.resendValidationEmail(id);
+        if (!sent) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new RichiestaResponse("Errore nel reinvio dell'email di convalida"))
+                .build();
+        }
+
+        return Response.ok(new RichiestaResponse("Email di convalida inviata nuovamente con successo"))
+            .build();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+            .entity(new RichiestaResponse("Errore nel reinvio dell'email di convalida: " + e.getMessage()))
+            .build();
+    }
+}
 }
