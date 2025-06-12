@@ -103,6 +103,11 @@ $(document).ready(function() {
         e.preventDefault();
         UI.closeModalListaRichieste();
     });
+    
+    $('#closeModalNonPositive').on('click', function(e) {
+        e.preventDefault();
+        UI.closeModalListaNonPositive();
+    });
 
     $('#applicaFiltri').on('click', function(e) {
         e.preventDefault();
@@ -223,7 +228,7 @@ $(document).ready(function() {
     });
 
     // Gestione chiusura modale cliccando fuori dal contenuto
-    $('#modalRichiesta, #modalListaRichieste, #modalConvalidaRichiesta').on('click', function(e) {
+    $('#modalRichiesta, #modalListaRichieste, #modalConvalidaRichiesta, #modalListaNonPositive').on('click', function(e) {
         if (e.target === this) {
             if (this.id === 'modalRichiesta') {
                 UI.closeModalRichiesta();
@@ -231,6 +236,8 @@ $(document).ready(function() {
                 UI.closeModalListaRichieste();
             } else if (this.id === 'modalConvalidaRichiesta') {
                 UI.closeModalConvalidaRichiesta();
+            } else if (this.id === 'modalListaNonPositive') {
+                UI.closeModalListaNonPositive();
             }
         }
     });

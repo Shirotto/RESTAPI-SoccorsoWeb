@@ -232,6 +232,59 @@
         </div>
     </div>
     
+      <!-- MODALE PER LISTA RICHIESTE NON TOTALMENTE POSITIVE -->
+    <div id="modalListaNonPositive" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>📋 Richieste Non Positivamente Concluse</h2>
+                <span class="close" id="closeModalNonPositive">&times;</span>
+            </div>
+
+            <!-- Messaggio di caricamento -->
+            <div id="loadingNonPositive" class="loading-message" style="display: none;">
+                <p>🔄 Caricamento richieste...</p>
+            </div>
+
+            <div id="noNonPositive" class="no-data-message" style="display: none;">
+                <p>📭 Nessuna richiesta trovata</p>
+            </div>
+
+            <!-- Tabella richieste -->
+            <div class="table-container">
+                <table class="richieste-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Richiedente</th>
+                            <th>Descrizione</th>
+                            <th>Indirizzo</th>
+                            <th>Stato</th>
+                            <th>Data Creazione</th>
+                            <th>Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyTabellaNonPositive">
+                        <!-- Righe via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginazione -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    <span id="infoPaginazioneNonPositive">Showing 0 of 0 results</span>
+                </div>
+                <div class="pagination-controls">
+                    <button id="btnPrimaPaginaNP" class="btn-page">⏮️</button>
+                    <button id="btnPaginaPrecedenteNP" class="btn-page">⬅️</button>
+                    <span id="numeroPaginaNP">Pagina 1 di 1</span>
+                    <button id="btnPaginaSuccessivaNP" class="btn-page">➡️</button>
+                    <button id="btnUltimaPaginaNP" class="btn-page">⏭️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- MODALE PER LISTA OPERATORI LIBERI -->
     <div id="modalListaOperatoriLiberi" class="modal">
         <div class="modal-content modal-large">

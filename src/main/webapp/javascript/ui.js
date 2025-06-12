@@ -42,16 +42,22 @@ function openModalRichiesteNonPositive() {
         livelloSuccesso: 'sotto5'
     };
     
-    $('#filtroStato').val('CHIUSA');
-    $('#filtroData').val('');
+ //   $('#filtroStato').val('CHIUSA');
+  // $('#filtroData').val('');
     
-    $('#modalListaRichieste').fadeIn(300);
+    $('#modalListaNonPositive').fadeIn(300);
     Richieste.caricaRichiesteNonPositive();
+}
+
+function closeModalListaNonPositive() {
+    $('#closeModalNonPositive').fadeOut(300);
 }
 
 function closeModalListaRichieste() {
     $('#modalListaRichieste').fadeOut(300);
 }
+ 
+ 
 
 function openModalOperatoriLiberi() {
     const modal = $('#modalListaOperatoriLiberi');
@@ -258,6 +264,7 @@ const UI = {
     closeModalRichiesta,
     openModalListaRichieste,
     openModalRichiesteNonPositive,
+    closeModalListaNonPositive,
     closeModalListaRichieste,
     openModalOperatoriLiberi,
     closeModalOperatoriLiberi,
