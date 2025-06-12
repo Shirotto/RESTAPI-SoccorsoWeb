@@ -226,6 +226,32 @@ $(document).ready(function() {
             }
         }
     });
+    
+        // Gestione paginazione per richieste non positive
+    $('#btnPrimaPaginaNP').on('click', function() {
+        if (Pagination.getCurrentPage() > 1) {
+            Pagination.setCurrentPage(1);
+            Richieste.caricaRichiesteNonPositive();
+        }
+    });
+    $('#btnPaginaPrecedenteNP').on('click', function() {
+        if (Pagination.getCurrentPage() > 1) {
+            Pagination.setCurrentPage(Pagination.getCurrentPage() - 1);
+            Richieste.caricaRichiesteNonPositive();
+        }
+    });
+    $('#btnPaginaSuccessivaNP').on('click', function() {
+        if (Pagination.getCurrentPage() < Pagination.getTotalPages()) {
+            Pagination.setCurrentPage(Pagination.getCurrentPage() + 1);
+            Richieste.caricaRichiesteNonPositive();
+        }
+    });
+    $('#btnUltimaPaginaNP').on('click', function() {
+        if (Pagination.getCurrentPage() < Pagination.getTotalPages()) {
+            Pagination.setCurrentPage(Pagination.getTotalPages());
+            Richieste.caricaRichiesteNonPositive();
+        }
+    });
 
     // Gestione chiusura modale cliccando fuori dal contenuto
     $('#modalRichiesta, #modalListaRichieste, #modalConvalidaRichiesta, #modalListaNonPositive').on('click', function(e) {

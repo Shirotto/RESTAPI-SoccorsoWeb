@@ -161,24 +161,25 @@ function caricaRichieste() {
 
 function caricaRichiesteNonPositive() {
     const token = Auth.getAuthToken();
-    
+
     if (!token) {
         alert('Sessione scaduta. Effettua nuovamente il login.');
         window.location.href = 'index.html';
         return;
     }
 
-    $('#loadingRichieste').show();
-    $('#tabellaRichieste').hide();
-    $('#noRichieste').hide();
+    // Mostra loading del MODALE CORRETTO
+    $('#loadingNonPositive').show();
+    $('#bodyTabellaNonPositive').empty();
+    $('#noNonPositive').hide();
 
     let url = 'http://localhost:8080/soccorso-web-services/api/richieste';
     let params = new URLSearchParams();
-    
+
     params.append('page', Pagination.getCurrentPage().toString());
     params.append('size', Pagination.getPageSize().toString());
     params.append('stato', 'CHIUSA');
-    
+
     if (params.toString()) {
         url += '?' + params.toString();
     }
@@ -190,41 +191,40 @@ function caricaRichiesteNonPositive() {
             'Authorization': 'Bearer ' + token
         },
         success: function(response) {
+            let richieste = [];
             if (response && response.content) {
-                const richiesteFiltrate = response.content.filter(function(richiesta) {
-                    if (richiesta.livelloSuccesso) {
-                        const livello = parseInt(richiesta.livelloSuccesso);
-                        return !isNaN(livello) && livello < 5;
-                    }
-                    return false;
-                });
-                
-                const responseFiltered = {
-                    content: richiesteFiltrate,
-                    totalElements: richiesteFiltrate.length,
-                    totalPages: Math.ceil(richiesteFiltrate.length / Pagination.getPageSize()),
-                    number: 0,
-                    size: Pagination.getPageSize()
-                };
-                
-                displayRichiesteNonPositive(responseFiltered);
+                richieste = response.content;
             } else if (Array.isArray(response)) {
-                const richiesteFiltrate = response.filter(function(richiesta) {
-                    if (richiesta.statoRichiesta === 'CHIUSA' && richiesta.livelloSuccesso) {
-                        const livello = parseInt(richiesta.livelloSuccesso);
-                        return !isNaN(livello) && livello < 5;
-                    }
-                    return false;
-                });
-                
-                displayRichiesteNonPositive(richiesteFiltrate);
-            } else {
-                displayRichiesteNonPositive([]);
+                richieste = response;
             }
+
+            // Filtro solo richieste con livello < 5
+            const richiesteFiltrate = richieste.filter(function(richiesta) {
+                const livello = parseInt(richiesta.livelloSuccesso);
+                return !isNaN(livello) && livello < 5;
+            });
+
+            $('#loadingNonPositive').hide();
+
+            if (richiesteFiltrate.length === 0) {
+                $('#noNonPositive').show();
+                return;
+            }
+
+            // Popola la TABELLA GIUSTA
+            const tbody = $('#bodyTabellaNonPositive');
+            richiesteFiltrate.forEach(function(richiesta) {
+                tbody.append(createRichiestaRowNonPositive(richiesta));
+            });
+
+            // Aggiorna la paginazione (se vuoi)
+            $('#infoPaginazioneNonPositive').text(
+                `Showing 1-${richiesteFiltrate.length} of ${richiesteFiltrate.length} results`
+            );
         },
         error: function(xhr, status, error) {
-            $('#loadingRichieste').hide();
-            
+            $('#loadingNonPositive').hide();
+
             if (xhr.status === 401) {
                 alert('Sessione scaduta. Effettua nuovamente il login.');
                 sessionStorage.removeItem('authToken');
@@ -232,12 +232,13 @@ function caricaRichiesteNonPositive() {
                 window.location.href = 'index.html';
                 return;
             }
-            
-            alert('Errore nel caricamento delle richieste: ' + 
+
+            alert('Errore nel caricamento delle richieste: ' +
                   (xhr.responseJSON?.error || 'Errore sconosciuto'));
         }
     });
 }
+
 
 function displayRichieste(richieste) {
     $('#loadingRichieste').hide();
@@ -274,28 +275,18 @@ function displayRichieste(richieste) {
 }
 
 function displayRichiesteNonPositive(richieste) {
-    $('#loadingRichieste').hide();
-    
-    let richiesteData = richieste;
-    if (richieste.content) {
-        richiesteData = richieste.content;
-        Pagination.setTotalItems(richieste.totalElements || richieste.length);
-        Pagination.setTotalPages(richieste.totalPages || 1);
-        Pagination.setCurrentPage((richieste.number || 0) + 1);
-    } else {
-        richiesteData = richieste;
-        Pagination.setTotalItems(richieste.length);
-        Pagination.setTotalPages(Math.ceil(Pagination.getTotalItems() / Pagination.getPageSize()));
-    }
-    
+    $('#loadingNonPositive').hide();
+
+    let richiesteData = richieste.content ? richieste.content : richieste;
+
     if (!richiesteData || richiesteData.length === 0) {
-        $('#noRichieste').show();
-        $('#tabellaRichieste').hide();
-        Pagination.updatePaginationInfo(0, 0);
+        $('#noNonPositive').show();
+        $('#bodyTabellaNonPositive').empty();
+        $('#infoPaginazioneNonPositive').text("Nessuna richiesta trovata");
         return;
     }
 
-    const tbody = $('#bodyTabellaRichieste');
+    const tbody = $('#bodyTabellaNonPositive');
     tbody.empty();
 
     richiesteData.forEach(function(richiesta) {
@@ -303,9 +294,9 @@ function displayRichiesteNonPositive(richieste) {
         tbody.append(row);
     });
 
-    $('#tabellaRichieste').show();
-    Pagination.updatePaginationInfo(richiesteData.length, Pagination.getTotalItems());
-    Pagination.updatePaginationControls();
+    $('#infoPaginazioneNonPositive').text(
+        `Showing 1-${richiesteData.length} of ${richiesteData.length} results`
+    );
 }
 
 function createRichiestaRow(richiesta) {

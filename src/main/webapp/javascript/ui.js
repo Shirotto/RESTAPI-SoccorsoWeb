@@ -50,7 +50,7 @@ function openModalRichiesteNonPositive() {
 }
 
 function closeModalListaNonPositive() {
-    $('#closeModalNonPositive').fadeOut(300);
+    $('#modalListaNonPositive').fadeOut(300);
 }
 
 function closeModalListaRichieste() {
