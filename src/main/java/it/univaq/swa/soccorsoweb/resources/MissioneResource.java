@@ -68,7 +68,7 @@ public class MissioneResource {
     @Path("/{id}/close")
     public Response closeMissione(@PathParam("id") Long id) {
         try {
-            Missione m = missioneService.closeMissione(id);          // vedi metodo nel service
+            Missione m = missioneService.closeMissione(id);         
             if (m == null) {
                 return Response.status(Response.Status.NOT_FOUND)
                         .entity("{\"error\":\"Missione non trovata\"}").build();
