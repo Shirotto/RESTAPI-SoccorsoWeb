@@ -217,9 +217,11 @@ Inserisci un numero da 1 a 10:`);
     
     const token = Auth.getAuthToken();
     
-    // Aggiunto il parametro livelloSuccesso all'URL della richiesta
+    // Codifica correttamente il parametro
+    const livelloCodificato = encodeURIComponent(livelloNumerico.toString());
+    
     $.ajax({
-        url: `http://localhost:8080/soccorso-web-services/api/missions/${missioneId}/close?livelloSuccesso=${livelloNumerico}`,
+        url: `http://localhost:8080/soccorso-web-services/api/missions/${missioneId}/close?livelloSuccesso=${livelloCodificato}`,
         type: 'PUT',
         headers: {
             'Authorization': 'Bearer ' + token
