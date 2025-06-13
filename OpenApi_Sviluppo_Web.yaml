@@ -1,0 +1,762 @@
+openapi: 3.0.3
+info:
+  title: API SoccorsoWeb
+  description: |
+    API per il sistema di gestione delle richieste di soccorso
+    
+    Sviluppatori:
+    - Antonio Sabatini (antonio.sabatini@student.univaq.it) - Contributo: 50%
+    - Mario Ranalli (mario.ranalli@student.univaq.it) - Contributo: 50%
+    
+  version: 1.0.0
+  contact:
+    name: Repository GitHub
+    url: https://github.com/Shirotto/sviluppo
+servers:
+  - url: http://localhost:8080
+    description: Server di sviluppo
+    
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: Indirizzo email dell'utente
+        password:
+          type: string
+          format: password
+          description: Password dell'utente
+
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Messaggio di risposta
+        token:
+          type: string
+          description: Token JWT per l'autenticazione
+        user:
+          $ref: '#/components/schemas/User'
+          description: Dati dell'utente
+        success:
+          type: boolean
+          description: Esito dell'operazione
+
+    User:
+      type: object
+      required:
+        - nome
+        - cognome
+        - telefono
+        - email
+        - password
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID univoco dell'utente
+        nome:
+          type: string
+          description: Nome dell'utente
+        cognome:
+          type: string
+          description: Cognome dell'utente
+        telefono:
+          type: integer
+          description: Numero di telefono
+        indirizzo:
+          type: string
+          description: Indirizzo dell'utente
+        email:
+          type: string
+          format: email
+          description: Email dell'utente
+        password:
+          type: string
+          format: password
+          description: Password dell'utente
+        role:
+          $ref: '#/components/schemas/UserRole'
+          description: Ruolo dell'utente
+
+    UserRole:
+      type: string
+      enum:
+        - UTENTE
+        - ADMIN
+      description: Ruoli disponibili nel sistema
+
+    RichiestaRequest:
+      type: object
+      required:
+        - descrizione
+        - indirizzo
+      properties:
+        usersId:
+          type: string
+          description: ID dell'utente richiedente
+        richiedente:
+          type: string
+          description: Nome del richiedente
+        descrizione:
+          type: string
+          description: Descrizione della richiesta di soccorso
+        indirizzo:
+          type: string
+          description: Indirizzo dove è richiesto il soccorso
+        telefonoContattoRichiesta:
+          type: string
+          description: Numero di telefono per il contatto
+        emailContattoRichiesta:
+          type: string
+          description: Email per il contatto
+
+    RichiestaResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Messaggio di risposta
+        richiesta:
+          $ref: '#/components/schemas/RichiestaSoccorso'
+          description: Dati della richiesta di soccorso
+
+    RichiestaSoccorso:
+      type: object
+      required:
+        - descrizione
+        - indirizzo
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID univoco della richiesta
+        usersId:
+          type: integer
+          format: int64
+          description: ID dell'utente richiedente
+        richiedente:
+          type: string
+          description: Nome del richiedente
+        descrizione:
+          type: string
+          description: Descrizione della richiesta
+        indirizzo:
+          type: string
+          description: Indirizzo dell'intervento
+        telefonoContattoRichiesta:
+          type: string
+          description: Telefono di contatto
+        emailContattoRichiesta:
+          type: string
+          description: Email di contatto
+        statoRichiesta:
+          $ref: '#/components/schemas/StatoRichiesta'
+          description: Stato corrente della richiesta
+        livelloSuccesso:
+          type: string
+          description: Livello di successo dell'intervento
+        dataCreazione:
+          type: string
+          format: date-time
+          description: Data e ora di creazione
+        validationToken:
+          type: string
+          description: Token di validazione
+
+    StatoRichiesta:
+      type: string
+      enum:
+        - PENDING_VALIDATION
+        - ATTIVA
+        - IN_CORSO
+        - CHIUSA
+        - IGNORATA
+      description: Stati possibili di una richiesta
+
+    Missione:
+      type: object
+      required:
+        - requestId
+        - autistaId
+        - caposquadraId
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID univoco della missione
+        requestId:
+          type: integer
+          format: int64
+          description: ID della richiesta associata
+        autistaId:
+          type: integer
+          format: int64
+          description: ID dell'autista assegnato
+        caposquadraId:
+          type: integer
+          format: int64
+          description: ID del caposquadra assegnato
+        status:
+          type: string
+          description: Stato della missione
+        createdAt:
+          type: string
+          format: date-time
+          description: Data e ora di creazione
+        closedAt:
+          type: string
+          format: date-time
+          description: Data e ora di chiusura
+
+    Operatore:
+      type: object
+      required:
+        - nome
+        - cognome
+        - ruolo
+      properties:
+        id:
+          type: integer
+          description: ID univoco dell'operatore
+        nome:
+          type: string
+          description: Nome dell'operatore
+        cognome:
+          type: string
+          description: Cognome dell'operatore
+        ruolo:
+          type: string
+          description: Ruolo dell'operatore
+        disponibile:
+          type: boolean
+          default: true
+          description: Indica se l'operatore è disponibile
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      security: []
+      tags:
+        - Autenticazione
+      summary: Login utente
+      description: Effettua il login di un utente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login effettuato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Credenziali non valide
+        '400':
+          description: Dati di input non validi
+        '500':
+          description: Errore interno del server
+
+  /auth/logout:
+    post:
+      tags:
+        - Autenticazione
+      summary: Logout utente
+      description: Effettua il logout dell'utente
+      responses:
+        '200':
+          description: Logout effettuato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /auth/verify:
+    get:
+      tags:
+        - Autenticazione
+      summary: Verifica token JWT
+      description: Verifica la validità del token JWT
+      responses:
+        '200':
+          description: Token valido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  email:
+                    type: string
+                  userId:
+                    type: integer
+                    format: int64
+                  role:
+                    type: string
+                  isAdmin:
+                    type: boolean
+        '401':
+          description: Token non valido o mancante
+
+  /users:
+    post:
+      security: []
+      tags:
+        - Utenti
+      summary: Registrazione nuovo utente
+      description: Registra un nuovo utente nel sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Utente creato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Dati non validi
+        '409':
+          description: Email già registrata
+        '500':
+          description: Errore interno del server
+
+    get:
+      tags:
+        - Utenti
+      summary: Recupera tutti gli utenti
+      description: Recupera la lista di tutti gli utenti (solo admin)
+      responses:
+        '200':
+          description: Lista degli utenti
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '403':
+          description: Accesso negato
+        '500':
+          description: Errore interno del server
+
+  /users/{id}:
+    get:
+      tags:
+        - Utenti
+      summary: Recupera utente per ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Dettagli utente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utente non trovato
+        '403':
+          description: Accesso negato
+
+  /users/{id}/role:
+    put:
+      tags:
+        - Utenti
+      summary: Aggiorna ruolo utente
+      description: Aggiorna il ruolo di un utente (solo admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  $ref: '#/components/schemas/UserRole'
+      responses:
+        '200':
+          description: Ruolo aggiornato con successo
+        '403':
+          description: Accesso negato
+        '500':
+          description: Errore interno del server
+
+  /richieste:
+    post:
+      tags:
+        - Richieste
+      summary: Crea nuova richiesta di soccorso
+      description: Crea una nuova richiesta di soccorso nel sistema
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RichiestaRequest'
+      responses:
+        '201':
+          description: Richiesta creata con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RichiestaResponse'
+        '400':
+          description: Dati non validi
+        '401':
+          description: Non autorizzato
+        '500':
+          description: Errore interno del server
+
+    get:
+      tags:
+        - Richieste
+      summary: Recupera tutte le richieste
+      description: Recupera tutte le richieste di soccorso (solo admin)
+      parameters:
+        - name: page
+          in: query
+          description: Numero di pagina
+          schema:
+            type: integer
+            default: 1
+        - name: size
+          in: query
+          description: Elementi per pagina
+          schema:
+            type: integer
+            default: 25
+        - name: stato
+          in: query
+          description: Filtra per stato
+          schema:
+            $ref: '#/components/schemas/StatoRichiesta'
+        - name: periodo
+          in: query
+          description: Filtra per periodo
+          schema:
+            type: string
+            enum: [oggi, settimana, mese]
+      responses:
+        '200':
+          description: Lista paginata delle richieste
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RichiestaSoccorso'
+                  totalElements:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  number:
+                    type: integer
+                  size:
+                    type: integer
+                  first:
+                    type: boolean
+                  last:
+                    type: boolean
+
+  /richieste/{id}:
+    get:
+      tags:
+        - Richieste
+      summary: Recupera richiesta per ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Dettagli richiesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RichiestaSoccorso'
+        '404':
+          description: Richiesta non trovata
+        '403':
+          description: Accesso negato
+
+    delete:
+      tags:
+        - Richieste
+      summary: Elimina richiesta
+      description: Elimina una richiesta di soccorso (solo admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Richiesta eliminata con successo
+        '404':
+          description: Richiesta non trovata
+        '403':
+          description: Accesso negato
+
+  /richieste/mie:
+    get:
+      tags:
+        - Richieste
+      summary: Recupera richieste personali
+      description: Recupera le richieste dell'utente corrente
+      responses:
+        '200':
+          description: Lista delle richieste dell'utente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RichiestaSoccorso'
+        '401':
+          description: Non autorizzato
+
+  /richieste/{id}/stato:
+    put:
+      tags:
+        - Richieste
+      summary: Aggiorna stato richiesta
+      description: Aggiorna lo stato di una richiesta (solo admin)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: stato
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/StatoRichiesta'
+        - name: livelloSuccesso
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Stato aggiornato con successo
+        '400':
+          description: Input non valido
+        '403':
+          description: Accesso negato
+
+  /missions:
+    post:
+      tags:
+        - Missioni
+      summary: Crea nuova missione
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Missione'
+      responses:
+        '201':
+          description: Missione creata con successo
+        '400':
+          description: Dati non validi
+        '500':
+          description: Errore interno del server
+
+    get:
+      tags:
+        - Missioni
+      summary: Recupera tutte le missioni
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: operatoreId
+          in: query
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Lista delle missioni
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Missione'
+
+  /missions/{id}:
+    get:
+      tags:
+        - Missioni
+      summary: Recupera missione per ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Dettagli missione
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Missione'
+        '404':
+          description: Missione non trovata
+
+  /missions/{id}/close:
+    put:
+      tags:
+        - Missioni
+      summary: Chiudi missione
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Missione chiusa con successo
+        '404':
+          description: Missione non trovata
+        '500':
+          description: Errore interno del server
+
+  /operatori:
+    post:
+      tags:
+        - Operatori
+      summary: Crea nuovo operatore
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Operatore'
+      responses:
+        '201':
+          description: Operatore creato con successo
+        '400':
+          description: Dati non validi
+        '500':
+          description: Errore interno del server
+
+    get:
+      tags:
+        - Operatori
+      summary: Recupera tutti gli operatori
+      parameters:
+        - name: disponibile
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Lista degli operatori
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Operatore'
+
+  /operatori/{id}:
+    get:
+      tags:
+        - Operatori
+      summary: Recupera operatore per ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dettagli operatore
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Operatore'
+        '404':
+          description: Operatore non trovato
+
+  /operatori/{id}/missioni:
+    get:
+      tags:
+        - Operatori
+      summary: Recupera missioni per operatore
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista delle missioni dell'operatore
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Missione'
+        '400':
+          description: ID operatore non valido
