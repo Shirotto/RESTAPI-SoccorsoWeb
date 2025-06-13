@@ -154,7 +154,7 @@ components:
           type: string
           description: Email per il contatto
       example:
-        descrizione: "Incidente stradale con feriti"
+        descrizione: "Incendio Appartamento, presenza di feriti"
         indirizzo: "Via Strinella 10, L'Aquila"
         telefonoContattoRichiesta: "3401234567"
         emailContattoRichiesta: "contatto@example.com"
