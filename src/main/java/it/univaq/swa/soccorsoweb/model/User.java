@@ -17,7 +17,7 @@ public class User {
     private String cognome;
     
     @Column(name = "telefono", nullable = false)
-    private int telefono; 
+    private String telefono; 
     
     @Column(name = "indirizzo")
     private String indirizzo;
@@ -43,8 +43,8 @@ public class User {
     public String getCognome() { return cognome; }
     public void setCognome(String cognome) { this.cognome = cognome; }
     
-    public int getTelefono() { return telefono; }
-    public void setTelefono(int telefono) { this.telefono = telefono; }
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
     
     public String getIndirizzo() { return indirizzo; }
     public void setIndirizzo(String indirizzo) { this.indirizzo = indirizzo; }

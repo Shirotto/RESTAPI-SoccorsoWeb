@@ -4,10 +4,10 @@ USE sviluppo_web;
 
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100),
-    cognome VARCHAR(100),
-    telefono VARCHAR(50),
-    indirizzo VARCHAR(100),
+    nome VARCHAR(100) NOT NULL,
+    cognome VARCHAR(100) NOT NULL,
+    telefono VARCHAR(100) NOT NULL,
+    indirizzo VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
     password VARCHAR(100) NOT NULL,
     role ENUM('UTENTE', 'ADMIN') DEFAULT 'UTENTE' NOT NULL

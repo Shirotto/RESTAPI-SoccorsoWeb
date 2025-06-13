@@ -124,24 +124,21 @@ function handleSignup() {
         return;
     }
     
-    // Validazione e conversione telefono
+    // Validazione: solo cifre
     const phoneRegex = /^[0-9]+$/;
     if (!phoneRegex.test(telefonoStr)) {
         alert('Il numero di telefono deve contenere solo cifre');
         return;
     }
-    
-    const telefono = parseInt(telefonoStr, 10);
-    if (isNaN(telefono) || telefono <= 0) {
-        alert('Numero di telefono non valido');
+
+    // Verifica la lunghezza, almeno 6 e massimo 15 cifre
+    if (telefonoStr.length < 6 || telefonoStr.length > 15) {
+        alert('Numero di telefono non valido (lunghezza non valida)');
         return;
     }
-    
-    // Verifica che il numero non sia troppo grande per un int
-    if (telefono > 2147483647) {
-        alert('Numero di telefono troppo lungo');
-        return;
-    }
+
+    // Stringa telefono valida
+    const telefono = telefonoStr;
     
     const signupData = {
         nome: nome,

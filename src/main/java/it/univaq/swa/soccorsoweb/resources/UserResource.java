@@ -49,12 +49,19 @@ public class UserResource {
                     .build();
             }
             
-            // Validazione telefono (deve essere > 0)
-            if (user.getTelefono() <= 0) {
+            // Controlla che 'telefono' non sia null e abbia lunghezza > 0
+            if (user.getTelefono() == null || user.getTelefono().trim().isEmpty()) {
                 return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\":\"Numero di telefono non valido\"}")
                     .build();
             }
+            
+             // Esempio di ulteriore validazione opzionale (solo cifre)
+            if (!user.getTelefono().matches("\\d+")) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("{\"error\":\"Il numero di telefono deve contenere solo cifre\"}")
+                    .build();
+        }
             
             // Controlla se l'email è già registrata
             User existingUser = userService.findUserByEmail(user.getEmail());
