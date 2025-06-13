@@ -411,7 +411,7 @@ ${livelloSuccessoDisplay}`;
         },
         error: function(xhr) {
             alert('Errore nel caricamento dei dettagli: ' + 
-                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+                  (xhr.responseJSON?.error || 'Accesso negato. Solo gli admin possono visualizzare i dettagli di una richiesta!'));
         }
     });
 }
@@ -562,7 +562,7 @@ function eliminaRichiesta(id) {
         },
         error: function(xhr) {
             alert('❌ Errore nell\'eliminazione: ' + 
-                  (xhr.responseJSON?.error || 'Errore sconosciuto'));
+                  (xhr.responseJSON?.error || 'Accesso negato. Solo gli admin possono annullare le richieste!'));
         }
     });
 }
