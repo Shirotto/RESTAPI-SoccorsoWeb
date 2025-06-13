@@ -63,7 +63,7 @@ public class MissioneResource {
         }
     }
 
-    /*  B.  chiusura missione  */
+    /*   chiusura missione  */
     @PUT
     @Path("/{id}/close")
     public Response closeMissione(@PathParam("id") Long id, @QueryParam("livelloSuccesso") String livelloSuccesso) {
@@ -74,7 +74,7 @@ public class MissioneResource {
                         .entity("{\"error\":\"Missione non trovata\"}").build();
             }
             
-              //  Salva livello di successo nel DB
+              // Salva livello di successo nel DB
             richiestaService.updateLivelloSuccesso(m.getRequestId(), livelloSuccesso);
             // libera gli operatori e chiude la richiesta collegata
             richiestaService.updateStatoRichiesta(m.getRequestId(), StatoRichiesta.CHIUSA);
